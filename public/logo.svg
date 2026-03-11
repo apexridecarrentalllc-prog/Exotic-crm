@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 36" fill="none">
+  <!-- Package icon -->
+  <path d="M18 5L5 12v12l13 7 13-7V12L18 5z" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round" fill="none"/>
+  <path d="M5 12l13 7 13-7M18 19v12" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Wordmark -->
+  <text x="44" y="24" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="700" fill="#FFFFFF" letter-spacing="0.02em">IE Manager</text>
+</svg>

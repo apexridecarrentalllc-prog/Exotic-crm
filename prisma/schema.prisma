@@ -1,0 +1,555 @@
+// IE Manager - Complete Prisma Schema
+// Database: MongoDB
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// ============ ENUMS ============
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  ACCOUNTS_MANAGER
+  OPERATIONS_STAFF
+  VIEW_ONLY
+}
+
+enum CompanyType {
+  CLEARING_AGENT
+  TRANSPORTER
+  WAREHOUSE
+  CONSULTANT
+  FREIGHT_FORWARDER
+  CUSTOMS_AGENT
+  OTHER
+}
+
+enum ShipmentType {
+  IMPORT
+  EXPORT
+}
+
+enum ShipmentStatus {
+  ORDER_CREATED
+  PORT_CLEARANCE
+  CLEARED
+  IN_TRANSIT
+  AT_WAREHOUSE
+  DELIVERED
+  CLOSED
+  CANCELLED
+}
+
+enum StageStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  CHEQUE
+  CASH
+  ONLINE
+}
+
+enum DocumentType {
+  BILL_OF_LADING
+  PORT_CLEARANCE
+  CUSTOMS_DECLARATION
+  DELIVERY_RECEIPT
+  INVOICE_COPY
+  TRANSPORT_DOC
+  INSURANCE
+  OTHER
+}
+
+enum NotificationType {
+  INVOICE_OVERDUE
+  PAYMENT_REMINDER
+  SHIPMENT_DELAYED
+  MISSING_DOCUMENT
+  SECURITY_ALERT
+  GENERAL
+}
+
+enum CreditNoteStatus {
+  DRAFT
+  ISSUED
+  APPLIED
+  CANCELLED
+}
+
+// ============ NEXT AUTH MODELS ============
+
+model Account {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String   @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model VerificationToken {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ============ USER ============
+
+model User {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String
+  role          UserRole
+  isActive      Boolean   @default(true)
+  avatar        String?
+  lastLogin     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  accounts     Account[]
+  sessions     Session[]
+  invoices     Invoice[]       @relation("CreatedByUser")
+  payments     Payment[]       @relation("RecordedByUser")
+  auditLogs    AuditLog[]
+  notifications Notification[]
+  shipmentComments ShipmentComment[]
+  invoiceRevisions InvoiceRevision[]
+  documents             Document[]
+  shipmentStatusChanges ShipmentStatusHistory[]
+  shipmentsCreated     Shipment[]
+  systemSettingsUpdated SystemSettings[]
+
+  @@map("users")
+}
+
+model Session {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken String   @unique
+  userId       String   @db.ObjectId
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+// ============ COMPANY ============
+
+model Company {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  type         CompanyType[]
+  address      String?
+  city         String?
+  country      String?
+  notes        String?
+  isActive     Boolean   @default(true)
+  paymentTerms String?
+  currency     String    @default("PKR")
+  taxNumber    String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  contacts     CompanyContact[]
+  bankAccounts BankAccount[]
+  shipmentStages ShipmentStage[]
+  invoices     Invoice[]
+  creditNotes  CreditNote[]
+  payments     Payment[]
+
+  @@index([name, isActive])
+  @@map("companies")
+}
+
+model CompanyContact {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  companyId   String   @db.ObjectId
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name        String
+  designation String?
+  phone       String?
+  email       String?
+  isPrimary   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@map("company_contacts")
+}
+
+model BankAccount {
+  id            String  @id @default(auto()) @map("_id") @db.ObjectId
+  companyId     String  @db.ObjectId
+  company       Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  bankName      String
+  accountNumber String
+  iban          String?
+  branchName    String?
+  isDefault     Boolean @default(false)
+
+  @@map("bank_accounts")
+}
+
+// ============ SHIPMENT ============
+
+model ShipmentSequence {
+  id         String       @id @default(auto()) @map("_id") @db.ObjectId
+  year       Int
+  type       ShipmentType
+  lastNumber Int          @default(0)
+  updatedAt  DateTime     @updatedAt
+
+  @@unique([year, type])
+  @@map("shipment_sequences")
+}
+
+model Shipment {
+  id               String           @id @default(auto()) @map("_id") @db.ObjectId
+  referenceNumber  String           @unique
+  type             ShipmentType
+  status           ShipmentStatus
+  origin           String
+  destination      String
+  goodsDescription String
+  containerNumber  String?
+  awbNumber        String?
+  weight           Float?
+  volume           Float?
+  cargoValue       Float?
+  currency         String           @default("PKR")
+  isUrgent         Boolean          @default(false)
+  internalNotes    String?
+  orderDate        DateTime
+  expectedDelivery DateTime?
+  actualDelivery   DateTime?
+  createdById      String          @db.ObjectId
+  createdBy        User            @relation(fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  stages           ShipmentStage[]
+  invoices         Invoice[]
+  documents        Document[]
+  comments         ShipmentComment[]
+  statusHistory    ShipmentStatusHistory[]
+  payments         Payment[]
+  creditNotes      CreditNote[]
+
+  @@index([status, type])
+  @@index([createdAt])
+  @@map("shipments")
+}
+
+model ShipmentStage {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  shipmentId    String      @db.ObjectId
+  shipment      Shipment    @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  companyId     String      @db.ObjectId
+  company       Company     @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  stageName     String
+  stageOrder    Int
+  status        StageStatus
+  startDate     DateTime?
+  completedDate DateTime?
+  notes         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@map("shipment_stages")
+}
+
+model ShipmentStatusHistory {
+  id          String          @id @default(auto()) @map("_id") @db.ObjectId
+  shipmentId  String          @db.ObjectId
+  shipment    Shipment        @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  status      ShipmentStatus
+  changedById String?         @db.ObjectId
+  changedBy   User?           @relation(fields: [changedById], references: [id], onDelete: SetNull)
+  changedAt   DateTime        @default(now())
+  notes       String?
+
+  @@map("shipment_status_history")
+}
+
+model ShipmentComment {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  shipmentId String   @db.ObjectId
+  shipment   Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  userId     String   @db.ObjectId
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("shipment_comments")
+}
+
+// ============ INVOICE ============
+
+model Invoice {
+  id              String          @id @default(auto()) @map("_id") @db.ObjectId
+  invoiceNumber   String          @unique
+  shipmentId      String          @db.ObjectId
+  shipment        Shipment        @relation(fields: [shipmentId], references: [id], onDelete: Restrict)
+  companyId       String          @db.ObjectId
+  company         Company         @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  createdById     String          @db.ObjectId
+  createdBy       User            @relation("CreatedByUser", fields: [createdById], references: [id], onDelete: Restrict)
+  status         InvoiceStatus
+  issueDate      DateTime
+  dueDate        DateTime
+  currency       String          @default("PKR")
+  exchangeRate   Float           @default(1)
+  subtotal       Float
+  taxRate        Float           @default(0)
+  taxAmount      Float           @default(0)
+  withholdingTax Float           @default(0)
+  totalAmount    Float
+  paidAmount     Float           @default(0)
+  balanceAmount  Float
+  notes          String?
+  sentAt         DateTime?
+  approvedById   String?         @db.ObjectId
+  approvedAt     DateTime?
+  cancelledAt   DateTime?
+  cancelReason   String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  lineItems      InvoiceLineItem[]
+  payments       Payment[]
+  creditNotes    CreditNote[]
+  revisionHistory InvoiceRevision[]
+
+  @@index([status, dueDate])
+  @@index([companyId, shipmentId])
+  @@map("invoices")
+}
+
+model InvoiceSequence {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  year       Int
+  lastNumber Int      @default(0)
+  updatedAt  DateTime @updatedAt
+
+  @@unique([year])
+  @@map("invoice_sequences")
+}
+
+model CreditNoteSequence {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  year       Int
+  lastNumber Int      @default(0)
+  updatedAt  DateTime @updatedAt
+
+  @@unique([year])
+  @@map("credit_note_sequences")
+}
+
+model InvoiceLineItem {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  invoiceId   String   @db.ObjectId
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  description String
+  quantity    Float
+  unitRate    Float
+  amount      Float
+  taxRate     Float   @default(0)
+  sortOrder   Int
+
+  @@map("invoice_line_items")
+}
+
+model InvoiceRevision {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  invoiceId    String   @db.ObjectId
+  invoice      Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  changedById  String   @db.ObjectId
+  changedBy    User     @relation(fields: [changedById], references: [id], onDelete: Restrict)
+  fieldChanged String
+  oldValue     String?
+  newValue     String?
+  changedAt    DateTime @default(now())
+
+  @@map("invoice_revisions")
+}
+
+model CreditNote {
+  id               String           @id @default(auto()) @map("_id") @db.ObjectId
+  invoiceId        String           @db.ObjectId
+  invoice          Invoice          @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  companyId        String           @db.ObjectId
+  company          Company          @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  shipmentId       String?          @db.ObjectId
+  shipment         Shipment?        @relation(fields: [shipmentId], references: [id], onDelete: SetNull)
+  creditNoteNumber String           @unique
+  amount           Float
+  reason           String
+  status           CreditNoteStatus
+  issuedAt         DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@map("credit_notes")
+}
+
+// ============ PAYMENT ============
+
+model Payment {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  invoiceId       String        @db.ObjectId
+  invoice         Invoice       @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  companyId       String        @db.ObjectId
+  company         Company       @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  shipmentId      String?       @db.ObjectId
+  shipment        Shipment?     @relation(fields: [shipmentId], references: [id], onDelete: SetNull)
+  recordedById    String        @db.ObjectId
+  recordedBy      User          @relation("RecordedByUser", fields: [recordedById], references: [id], onDelete: Restrict)
+  amount          Float
+  currency        String        @default("PKR")
+  exchangeRate    Float         @default(1)
+  paymentDate     DateTime
+  method         PaymentMethod
+  referenceNumber String?
+  bankName        String?
+  notes           String?
+  isAdvance       Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([invoiceId, paymentDate])
+  @@map("payments")
+}
+
+// ============ DOCUMENT ============
+
+model Document {
+  id                String    @id @default(auto()) @map("_id") @db.ObjectId
+  shipmentId        String    @db.ObjectId
+  shipment          Shipment  @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  uploadedById      String    @db.ObjectId
+  uploadedBy        User      @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
+  type              DocumentType
+  fileName          String
+  originalName      String
+  fileSize          Int
+  mimeType          String
+  filePath          String
+  version           Int        @default(1)
+  isLatest          Boolean   @default(true)
+  previousVersionId String?    @db.ObjectId
+  previousVersion   Document?  @relation("DocumentVersions", fields: [previousVersionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  nextVersions      Document[] @relation("DocumentVersions")
+  notes             String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@map("documents")
+}
+
+// ============ NOTIFICATION ============
+
+model Notification {
+  id          String           @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String           @db.ObjectId
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  message     String
+  type        NotificationType
+  isRead      Boolean          @default(false)
+  relatedId   String?
+  relatedType String?
+  createdAt   DateTime         @default(now())
+
+  @@index([userId, isRead, createdAt])
+  @@map("notifications")
+}
+
+// ============ EMAIL LOG ============
+
+model EmailLog {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  to        String
+  subject   String
+  invoiceId String?   @db.ObjectId
+  companyId String?   @db.ObjectId
+  sentById  String?   @db.ObjectId
+  sentAt    DateTime  @default(now())
+  status    String    // SENT | FAILED
+  error     String?
+  @@map("email_logs")
+}
+
+// ============ AUDIT LOG ============
+
+model AuditLog {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+  user       User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  action     String
+  entityType String
+  entityId   String
+  oldValues  Json?
+  newValues  Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}
+
+// ============ SYSTEM SETTINGS (key-value) ============
+
+model SystemSettings {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  key         String   @unique
+  value       String
+  updatedAt   DateTime @updatedAt
+  updatedById String?  @db.ObjectId
+  updatedBy   User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@map("system_settings")
+}
+
+// ============ EXCHANGE RATE ============
+
+model ExchangeRate {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  fromCurrency String
+  toCurrency   String
+  rate         Float
+  date         DateTime
+  isManual     Boolean
+
+  @@map("exchange_rates")
+}
