@@ -3,6 +3,9 @@ import type { UserRole } from "@/types";
 
 // Edge-safe auth config for middleware (no bcrypt, no Prisma)
 export const authConfig: NextAuthConfig = {
+  // Render (and other proxies) often terminate TLS and forward host headers.
+  // Auth.js requires explicitly trusting the host in production environments.
+  trustHost: process.env.AUTH_TRUST_HOST === "true" || process.env.NODE_ENV === "development",
   providers: [],
   session: {
     strategy: "jwt",
