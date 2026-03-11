@@ -52,9 +52,9 @@ function LoginForm() {
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary text-primary-foreground">
           <Package className="h-6 w-6" />
         </div>
-        <h1 className="text-2xl font-bold">IE Manager</h1>
+        <h1 className="text-2xl font-bold">Exotic Food Stuff</h1>
         <p className="text-muted-foreground text-sm">
-          Import/Export Business Management
+          Food Stuff Business Management
         </p>
       </div>
 
@@ -145,15 +145,6 @@ function LoginForm() {
             {isSubmitting ? "Signing in…" : "Sign in"}
           </button>
         </form>
-
-        {process.env.NODE_ENV === "development" && (
-          <div className="rounded-md bg-muted/50 text-muted-foreground text-xs p-3 border border-border/50">
-            <p className="font-medium text-foreground/80 mb-1">Demo credentials</p>
-            <p>Admin: admin@iemanager.com / Admin@123</p>
-            <p>Accounts: accounts@iemanager.com / Accounts@123</p>
-            <p>Ops: ops@iemanager.com / Ops@123</p>
-          </div>
-        )}
       </div>
     </div>
   );

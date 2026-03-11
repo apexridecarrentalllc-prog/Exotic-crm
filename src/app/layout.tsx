@@ -3,8 +3,8 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "IE Manager",
-  description: "Import/Export Business Management System",
+  title: "Exotic Food Stuff",
+  description: "Food Stuff Business Management System",
 };
 
 export default function RootLayout({

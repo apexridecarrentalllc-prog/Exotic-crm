@@ -4,8 +4,8 @@ import { auth } from "@/lib/auth";
 import { DashboardProviders } from "@/components/layout/DashboardProviders";
 
 export const metadata: Metadata = {
-  title: { template: "%s | IE Manager", default: "Dashboard | IE Manager" },
-  description: "Import/Export Business Management System",
+  title: { template: "%s | Exotic Food Stuff", default: "Dashboard | Exotic Food Stuff" },
+  description: "Food Stuff Business Management System",
 };
 
 export default async function DashboardRootLayout({

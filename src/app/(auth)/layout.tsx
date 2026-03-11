@@ -9,10 +9,10 @@ export default function AuthLayout({
       <div className="hidden lg:flex lg:w-1/2 xl:w-[55%] bg-gradient-to-br from-primary/90 via-primary to-primary/80 flex-col justify-center px-12 xl:px-20 text-primary-foreground">
         <div className="max-w-md">
           <h1 className="text-3xl xl:text-4xl font-bold tracking-tight">
-            IE Manager
+            Exotic Food Stuff
           </h1>
           <p className="mt-3 text-lg text-primary-foreground/90">
-            Import/Export Business Management
+            Food Stuff Business Management
           </p>
           <p className="mt-6 text-sm text-primary-foreground/80">
             Manage companies, shipments, invoices, and documents in one place.
