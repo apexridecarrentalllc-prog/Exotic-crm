@@ -83,6 +83,7 @@ async function getHandler(
         totalAmount: toNum(inv.totalAmount),
         balanceAmount: toNum(inv.balanceAmount),
         dueDate: inv.dueDate,
+        issueDate: inv.issueDate,
         shipment: inv.shipment,
       })),
       recentShipments,

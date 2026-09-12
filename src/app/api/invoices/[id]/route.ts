@@ -128,9 +128,9 @@ async function patchHandler(
 
     let updatePayload: Record<string, unknown> = {
       dueDate: data.dueDate ?? existing.dueDate,
-      currency: data.currency ?? existing.currency,
-      taxRate: data.taxRate ?? toNum(existing.taxRate),
-      withholdingTax: data.withholdingTax ?? toNum(existing.withholdingTax),
+      currency: "AED",
+      taxRate: 0,
+      withholdingTax: 0,
       notes: data.notes !== undefined ? data.notes : existing.notes,
     };
 
@@ -144,12 +144,12 @@ async function patchHandler(
           quantity: line.quantity,
           unitRate: line.unitRate,
           amount,
-          taxRate: line.taxRate ?? 0,
+          taxRate: 0,
           sortOrder: i,
         };
       });
-      const taxAmount = subtotal * ((data.taxRate ?? toNum(existing.taxRate)) / 100);
-      const totalAmount = subtotal + taxAmount - (data.withholdingTax ?? toNum(existing.withholdingTax));
+      const taxAmount = 0;
+      const totalAmount = subtotal;
       const balanceAmount = totalAmount - toNum(existing.paidAmount);
 
       await prisma.$transaction([
@@ -162,8 +162,8 @@ async function patchHandler(
             taxAmount,
             totalAmount,
             balanceAmount,
-            taxRate: data.taxRate ?? existing.taxRate,
-            withholdingTax: data.withholdingTax ?? existing.withholdingTax,
+            taxRate: 0,
+            withholdingTax: 0,
             lineItems: {
               create: lineItemData.map((line) => ({
                 description: line.description,
@@ -178,19 +178,17 @@ async function patchHandler(
         }),
       ]);
     } else {
-      if (existing.status === "DRAFT" && (data.taxRate !== undefined || data.withholdingTax !== undefined)) {
+      if (existing.status === "DRAFT") {
         const currentSubtotal = existing.lineItems.reduce((s, li) => s + toNum(li.amount), 0);
-        const taxRate = data.taxRate ?? toNum(existing.taxRate);
-        const withholdingTax = data.withholdingTax ?? toNum(existing.withholdingTax);
-        const taxAmount = currentSubtotal * (taxRate / 100);
-        const totalAmount = currentSubtotal + taxAmount - withholdingTax;
+        const taxAmount = 0;
+        const totalAmount = currentSubtotal;
         const balanceAmount = totalAmount - toNum(existing.paidAmount);
         updatePayload = {
           ...updatePayload,
           subtotal: currentSubtotal,
-          taxRate,
+          taxRate: 0,
           taxAmount,
-          withholdingTax,
+          withholdingTax: 0,
           totalAmount,
           balanceAmount,
         };

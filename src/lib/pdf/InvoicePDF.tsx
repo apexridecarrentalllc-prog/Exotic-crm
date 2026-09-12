@@ -8,214 +8,257 @@ import {
   StyleSheet,
 } from "@react-pdf/renderer";
 
+const GREEN = "#3F730A";
+const WHITE = "#FFFFFF";
+const MUTED = "#4B6B38";
+const LINE = "#C5D9B4";
+const INK = "#1F3A0D";
+
 const styles = StyleSheet.create({
   page: {
-    padding: 40,
+    paddingTop: 36,
+    paddingBottom: 48,
+    paddingHorizontal: 40,
     fontSize: 10,
     fontFamily: "Helvetica",
-    position: "relative",
+    color: GREEN,
   },
-  logoPlaceholder: {
-    width: 120,
-    height: 48,
-    backgroundColor: "#E5E7EB",
-    marginBottom: 16,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  logoPlaceholderText: {
-    fontSize: 8,
-    color: "#9CA3AF",
+  topBar: {
+    height: 4,
+    backgroundColor: GREEN,
+    marginBottom: 20,
+    marginHorizontal: -40,
+    marginTop: -36,
   },
   header: {
-    marginBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "#333",
-    paddingBottom: 12,
-  },
-  invoiceTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 8,
-    letterSpacing: 0.5,
-  },
-  headerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 4,
+    alignItems: "flex-start",
+    marginBottom: 22,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: LINE,
   },
-  companyName: {
-    fontSize: 14,
-    fontWeight: "bold",
-    marginBottom: 2,
+  logo: {
+    width: 180,
+    height: 64,
+    objectFit: "contain",
   },
-  subtitle: {
-    fontSize: 9,
-    color: "#666",
+  logoFallback: {
+    width: 180,
+    justifyContent: "center",
   },
-  section: {
-    marginBottom: 16,
+  brandName: {
+    fontSize: 18,
+    fontFamily: "Helvetica-Bold",
+    color: GREEN,
+    letterSpacing: 1.5,
   },
-  sectionTitle: {
-    fontSize: 11,
-    fontWeight: "bold",
+  brandSub: {
+    fontSize: 8,
+    color: GREEN,
+    marginTop: 4,
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
+  },
+  invoiceMeta: {
+    alignItems: "flex-end",
+  },
+  invoiceTitle: {
+    fontSize: 22,
+    fontFamily: "Helvetica-Bold",
+    color: GREEN,
+    letterSpacing: 2,
+    marginBottom: 8,
+  },
+  metaRow: {
+    flexDirection: "row",
+    marginBottom: 3,
+  },
+  metaLabel: {
+    width: 70,
+    color: MUTED,
+    textAlign: "right",
+    marginRight: 8,
+  },
+  metaValue: {
+    fontFamily: "Helvetica-Bold",
+  },
+  twoCol: {
+    flexDirection: "row",
+    gap: 16,
+    marginBottom: 20,
+  },
+  col: {
+    flex: 1,
+  },
+  sectionLabel: {
+    fontSize: 8,
+    color: GREEN,
+    letterSpacing: 1,
+    textTransform: "uppercase",
     marginBottom: 6,
-    color: "#374151",
+    fontFamily: "Helvetica-Bold",
   },
   billToBox: {
     padding: 10,
-    borderWidth: 0.5,
-    borderColor: "#d1d5db",
-    backgroundColor: "#f9fafb",
+    backgroundColor: "#F4F8F0",
+    borderWidth: 1,
+    borderColor: LINE,
+    borderLeftWidth: 3,
+    borderLeftColor: GREEN,
   },
-  row: {
-    flexDirection: "row",
+  companyName: {
+    fontSize: 12,
+    fontFamily: "Helvetica-Bold",
     marginBottom: 4,
   },
-  label: {
-    width: 100,
-    color: "#555",
+  address: {
+    color: MUTED,
+    lineHeight: 1.4,
   },
-  value: {
-    flex: 1,
-  },
-  shipmentRefBox: {
-    padding: 8,
+  shipmentBox: {
+    padding: 10,
     borderWidth: 1,
-    borderColor: "#3F730A",
-    backgroundColor: "#E8F0E0",
-    marginTop: 6,
+    borderColor: GREEN,
+    backgroundColor: WHITE,
   },
-  shipmentRefLabel: {
-    fontSize: 8,
-    color: "#3F730A",
-    marginBottom: 2,
+  shipmentValue: {
+    fontFamily: "Helvetica-Bold",
+    fontSize: 11,
   },
   table: {
-    marginTop: 8,
+    marginTop: 4,
+    marginBottom: 12,
   },
   tableHeader: {
     flexDirection: "row",
-    backgroundColor: "#3F730A",
-    paddingVertical: 6,
-    paddingHorizontal: 4,
-    fontWeight: "bold",
+    backgroundColor: GREEN,
+    paddingVertical: 8,
+    paddingHorizontal: 8,
   },
   tableHeaderText: {
-    color: "#FFFFFF",
-    fontSize: 9,
+    color: WHITE,
+    fontSize: 8,
+    fontFamily: "Helvetica-Bold",
+    letterSpacing: 0.6,
+    textTransform: "uppercase",
   },
   tableRow: {
     flexDirection: "row",
     borderBottomWidth: 0.5,
-    borderBottomColor: "#e5e7eb",
-    paddingVertical: 6,
-    paddingHorizontal: 4,
+    borderBottomColor: LINE,
+    paddingVertical: 8,
+    paddingHorizontal: 8,
   },
   tableRowAlt: {
-    backgroundColor: "#f3f4f6",
+    backgroundColor: "#F4F8F0",
   },
-  colDesc: { width: "35%" },
-  colQty: { width: "12%", textAlign: "right" },
-  colRate: { width: "18%", textAlign: "right" },
-  colAmount: { width: "18%", textAlign: "right" },
-  colTax: { width: "17%", textAlign: "right" },
+  colDesc: { width: "46%" },
+  colQty: { width: "14%", textAlign: "right" },
+  colRate: { width: "20%", textAlign: "right" },
+  colAmount: { width: "20%", textAlign: "right" },
   totalsWrap: {
-    marginTop: 16,
+    marginTop: 8,
     alignItems: "flex-end",
   },
   totalsBox: {
     width: 240,
-    borderWidth: 0.5,
-    borderColor: "#d1d5db",
-    padding: 12,
   },
   totalRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 4,
-  },
-  totalLabel: {
-    color: "#555",
-  },
-  totalValue: {
-    fontWeight: "bold",
+    color: MUTED,
   },
   grandTotalBox: {
-    marginTop: 8,
-    paddingTop: 8,
-    borderTopWidth: 2,
-    borderTopColor: "#3F730A",
+    marginTop: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    backgroundColor: GREEN,
     flexDirection: "row",
     justifyContent: "space-between",
-    fontSize: 12,
-    fontWeight: "bold",
+    alignItems: "center",
+  },
+  grandLabel: {
+    color: WHITE,
+    fontSize: 9,
+    fontFamily: "Helvetica-Bold",
+    letterSpacing: 1,
+    textTransform: "uppercase",
+  },
+  grandValue: {
+    color: WHITE,
+    fontSize: 13,
+    fontFamily: "Helvetica-Bold",
   },
   paymentSection: {
-    marginTop: 24,
+    marginTop: 28,
     padding: 12,
-    backgroundColor: "#f5f5f5",
-    fontSize: 9,
-    borderWidth: 0.5,
-    borderColor: "#e5e7eb",
+    borderWidth: 1,
+    borderColor: GREEN,
+    backgroundColor: WHITE,
   },
   paymentTitle: {
-    fontWeight: "bold",
+    fontFamily: "Helvetica-Bold",
     marginBottom: 6,
+    fontSize: 9,
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+    color: GREEN,
   },
   bankLine: {
     marginBottom: 4,
+    color: MUTED,
   },
   footer: {
     position: "absolute",
-    bottom: 28,
+    bottom: 24,
     left: 40,
     right: 40,
+    borderTopWidth: 1,
+    borderTopColor: LINE,
+    paddingTop: 8,
     flexDirection: "row",
     justifyContent: "space-between",
     fontSize: 8,
-    color: "#6b7280",
+    color: MUTED,
   },
   watermark: {
     position: "absolute",
-    top: "30%",
+    top: "38%",
     left: 0,
     right: 0,
     alignItems: "center",
     justifyContent: "center",
-    transform: "rotate(-30deg)",
+    transform: "rotate(-28deg)",
   },
   watermarkPaid: {
-    fontSize: 48,
-    fontWeight: "bold",
+    fontSize: 54,
+    fontFamily: "Helvetica-Bold",
     color: "#059669",
-    opacity: 0.35,
+    opacity: 0.28,
   },
   watermarkOverdue: {
-    fontSize: 48,
-    fontWeight: "bold",
+    fontSize: 54,
+    fontFamily: "Helvetica-Bold",
     color: "#DC2626",
-    opacity: 0.35,
-  },
-  taxIds: {
-    marginTop: 4,
-    fontSize: 9,
-    color: "#555",
+    opacity: 0.28,
   },
 });
 
 export interface InvoicePDFData {
   invoiceNumber: string;
   issueDate: string;
-  dueDate: string;
-  currency: string;
+  dueDate?: string;
+  currency?: string;
   subtotal: number;
-  taxRate: number;
-  taxAmount: number;
-  withholdingTax: number;
+  taxRate?: number;
+  taxAmount?: number;
+  withholdingTax?: number;
   totalAmount: number;
-  paidAmount: number;
-  balanceAmount: number;
+  paidAmount?: number;
+  balanceAmount?: number;
   status?: string;
   notes?: string | null;
   company: {
@@ -223,9 +266,6 @@ export interface InvoicePDFData {
     address?: string | null;
     city?: string | null;
     country?: string | null;
-    taxNumber?: string | null;
-    ntn?: string | null;
-    strn?: string | null;
   };
   shipment?: {
     referenceNumber: string;
@@ -235,7 +275,7 @@ export interface InvoicePDFData {
     quantity: number;
     unitRate: number;
     amount: number;
-    taxRate: number;
+    taxRate?: number;
   }>;
   bankAccounts?: Array<{
     bankName: string;
@@ -245,33 +285,30 @@ export interface InvoicePDFData {
   }>;
   termsAndConditions?: string | null;
   generatedAt?: string;
-  /** From settings: issuer company name (header) */
   issuerCompanyName?: string | null;
-  /** From settings: issuer tagline */
   issuerTagline?: string | null;
-  /** From settings: logo URL path */
   issuerLogoUrl?: string | null;
 }
 
-const DEFAULT_HEADER_NAME = process.env.NEXT_PUBLIC_COMPANY_NAME ?? "IE Manager";
-const DEFAULT_HEADER_LINE2 = process.env.NEXT_PUBLIC_COMPANY_TAGLINE ?? "Import / Export Management";
+const DEFAULT_HEADER_NAME = process.env.NEXT_PUBLIC_COMPANY_NAME ?? "EXOTIC";
+const DEFAULT_HEADER_LINE2 = process.env.NEXT_PUBLIC_COMPANY_TAGLINE ?? "LOGISTICS";
 const DEFAULT_TERMS =
   process.env.NEXT_PUBLIC_INVOICE_TERMS ??
-  "Payment is due by the due date. Terms and conditions apply as per agreement. This is a computer-generated invoice.";
+  "This is a computer-generated invoice. Please include the invoice number on your payment.";
+
+function formatMoney(n: number) {
+  return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
 
 export function InvoicePDF({ invoice }: { invoice: InvoicePDFData }) {
   const formatDate = (d: string) =>
-    new Date(d).toLocaleDateString(undefined, { dateStyle: "medium" });
-  const formatMoney = (n: number) =>
-    invoice.currency + " " + n.toLocaleString("en-US", { minimumFractionDigits: 2 });
+    new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 
   const status = (invoice.status ?? "").toUpperCase();
   const showPaidWatermark = status === "PAID";
   const showOverdueWatermark = status === "OVERDUE";
   const terms = invoice.termsAndConditions ?? DEFAULT_TERMS;
   const generatedAt = invoice.generatedAt ?? new Date().toISOString();
-  const ntn = invoice.company.ntn ?? invoice.company.taxNumber;
-  const strn = invoice.company.strn;
   const companyHeaderName = invoice.issuerCompanyName ?? DEFAULT_HEADER_NAME;
   const companyHeaderLine2 = invoice.issuerTagline ?? DEFAULT_HEADER_LINE2;
   const logoUrl = invoice.issuerLogoUrl;
@@ -279,6 +316,8 @@ export function InvoicePDF({ invoice }: { invoice: InvoicePDFData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        <View style={styles.topBar} />
+
         {showPaidWatermark && (
           <View style={styles.watermark}>
             <Text style={styles.watermarkPaid}>PAID</Text>
@@ -290,139 +329,105 @@ export function InvoicePDF({ invoice }: { invoice: InvoicePDFData }) {
           </View>
         )}
 
-        {logoUrl ? (
-          <View style={{ marginBottom: 16 }}>
-            <Image src={logoUrl} style={{ width: 120, height: 48 }} />
-          </View>
-        ) : (
-          <View style={styles.logoPlaceholder}>
-            <Text style={styles.logoPlaceholderText}>Company logo</Text>
-          </View>
-        )}
-
         <View style={styles.header}>
-          <Text style={styles.invoiceTitle}>INVOICE</Text>
-          <View style={styles.headerRow}>
-            <View>
-              <Text style={styles.companyName}>{companyHeaderName}</Text>
-              <Text style={styles.subtitle}>{companyHeaderLine2}</Text>
+          {logoUrl ? (
+            <Image src={logoUrl} style={styles.logo} />
+          ) : (
+            <View style={styles.logoFallback}>
+              <Text style={styles.brandName}>{companyHeaderName}</Text>
+              <Text style={styles.brandSub}>{companyHeaderLine2}</Text>
             </View>
-            <View style={{ alignItems: "flex-end" }}>
-              <View style={styles.row}><Text style={styles.label}>Invoice #</Text><Text style={styles.value}>{invoice.invoiceNumber}</Text></View>
-              <View style={styles.row}><Text style={styles.label}>Issue date</Text><Text style={styles.value}>{formatDate(invoice.issueDate)}</Text></View>
-              <View style={styles.row}><Text style={styles.label}>Due date</Text><Text style={styles.value}>{formatDate(invoice.dueDate)}</Text></View>
+          )}
+          <View style={styles.invoiceMeta}>
+            <Text style={styles.invoiceTitle}>INVOICE</Text>
+            <View style={styles.metaRow}>
+              <Text style={styles.metaLabel}>Number</Text>
+              <Text style={styles.metaValue}>{invoice.invoiceNumber}</Text>
+            </View>
+            <View style={styles.metaRow}>
+              <Text style={styles.metaLabel}>Date</Text>
+              <Text style={styles.metaValue}>{formatDate(invoice.issueDate)}</Text>
             </View>
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Bill To</Text>
-          <View style={styles.billToBox}>
-            <Text style={{ fontWeight: "bold", marginBottom: 4 }}>{invoice.company.name}</Text>
-            {(invoice.company.address || invoice.company.city || invoice.company.country) && (
-              <Text style={{ marginBottom: 2, color: "#555" }}>
-                {[invoice.company.address, invoice.company.city, invoice.company.country]
-                  .filter(Boolean)
-                  .join(", ")}
-              </Text>
-            )}
-            {(ntn || strn) && (
-              <View style={styles.taxIds}>
-                {ntn && <Text>NTN: {ntn}</Text>}
-                {strn && <Text>STRN: {strn}</Text>}
-              </View>
-            )}
-          </View>
-        </View>
-
-        {invoice.shipment && (
-          <View style={styles.section}>
-            <View style={styles.shipmentRefBox}>
-              <Text style={styles.shipmentRefLabel}>Shipment reference</Text>
-              <Text style={{ fontWeight: "bold" }}>{invoice.shipment.referenceNumber}</Text>
-            </View>
-          </View>
-        )}
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Line items</Text>
-          <View style={styles.table}>
-            <View style={styles.tableHeader}>
-              <Text style={[styles.colDesc, styles.tableHeaderText]}>Description</Text>
-              <Text style={[styles.colQty, styles.tableHeaderText]}>Qty</Text>
-              <Text style={[styles.colRate, styles.tableHeaderText]}>Unit rate</Text>
-              <Text style={[styles.colAmount, styles.tableHeaderText]}>Amount</Text>
-              <Text style={[styles.colTax, styles.tableHeaderText]}>Tax %</Text>
-            </View>
-            {invoice.lineItems.map((line, i) => (
-              <View
-                key={i}
-                style={[
-                  styles.tableRow,
-                  ...(i % 2 === 1 ? [styles.tableRowAlt] : []),
-                ]}
-              >
-                <Text style={styles.colDesc}>{line.description}</Text>
-                <Text style={styles.colQty}>{line.quantity}</Text>
-                <Text style={styles.colRate}>{formatMoney(line.unitRate)}</Text>
-                <Text style={styles.colAmount}>{formatMoney(line.amount)}</Text>
-                <Text style={styles.colTax}>{line.taxRate}%</Text>
-              </View>
-            ))}
-          </View>
-
-          <View style={styles.totalsWrap}>
-            <View style={styles.totalsBox}>
-              <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>Subtotal</Text>
-                <Text style={styles.totalValue}>{formatMoney(invoice.subtotal)}</Text>
-              </View>
-              <View style={styles.totalRow}>
-                <Text style={styles.totalLabel}>Tax ({invoice.taxRate}%)</Text>
-                <Text style={styles.totalValue}>{formatMoney(invoice.taxAmount)}</Text>
-              </View>
-              {invoice.withholdingTax > 0 && (
-                <View style={styles.totalRow}>
-                  <Text style={styles.totalLabel}>Withholding tax</Text>
-                  <Text style={styles.totalValue}>-{formatMoney(invoice.withholdingTax)}</Text>
-                </View>
+        <View style={styles.twoCol}>
+          <View style={styles.col}>
+            <Text style={styles.sectionLabel}>Bill to</Text>
+            <View style={styles.billToBox}>
+              <Text style={styles.companyName}>{invoice.company.name}</Text>
+              {(invoice.company.address || invoice.company.city || invoice.company.country) && (
+                <Text style={styles.address}>
+                  {[invoice.company.address, invoice.company.city, invoice.company.country]
+                    .filter(Boolean)
+                    .join(", ")}
+                </Text>
               )}
-              <View style={styles.grandTotalBox}>
-                <Text>Grand total</Text>
-                <Text>{formatMoney(invoice.totalAmount)}</Text>
+            </View>
+          </View>
+          {invoice.shipment && (
+            <View style={styles.col}>
+              <Text style={styles.sectionLabel}>Shipment</Text>
+              <View style={styles.shipmentBox}>
+                <Text style={styles.shipmentValue}>{invoice.shipment.referenceNumber}</Text>
               </View>
+            </View>
+          )}
+        </View>
+
+        <Text style={styles.sectionLabel}>Charges</Text>
+        <View style={styles.table}>
+          <View style={styles.tableHeader}>
+            <Text style={[styles.colDesc, styles.tableHeaderText]}>Description</Text>
+            <Text style={[styles.colQty, styles.tableHeaderText]}>Qty</Text>
+            <Text style={[styles.colRate, styles.tableHeaderText]}>Rate</Text>
+            <Text style={[styles.colAmount, styles.tableHeaderText]}>Amount</Text>
+          </View>
+          {invoice.lineItems.map((line, i) => (
+            <View
+              key={i}
+              style={[styles.tableRow, ...(i % 2 === 1 ? [styles.tableRowAlt] : [])]}
+            >
+              <Text style={styles.colDesc}>{line.description}</Text>
+              <Text style={styles.colQty}>{line.quantity}</Text>
+              <Text style={styles.colRate}>{formatMoney(line.unitRate)}</Text>
+              <Text style={styles.colAmount}>{formatMoney(line.amount)}</Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.totalsWrap}>
+          <View style={styles.totalsBox}>
+            <View style={styles.grandTotalBox}>
+              <Text style={styles.grandLabel}>Total</Text>
+              <Text style={styles.grandValue}>{formatMoney(invoice.totalAmount)}</Text>
             </View>
           </View>
         </View>
-
-        {invoice.notes && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Notes</Text>
-            <Text style={styles.value}>{invoice.notes}</Text>
-          </View>
-        )}
 
         <View style={styles.paymentSection}>
           <Text style={styles.paymentTitle}>Payment details</Text>
-          <Text style={{ marginBottom: 6 }}>
-            Please remit payment by the due date. Include invoice number on your payment.
-          </Text>
           {invoice.bankAccounts && invoice.bankAccounts.length > 0 ? (
             invoice.bankAccounts.map((bank, i) => (
               <View key={i} style={styles.bankLine}>
-                <Text><Text style={{ fontWeight: "bold" }}>{bank.bankName}</Text> – Account: {bank.accountNumber}</Text>
+                <Text>
+                  <Text style={{ fontFamily: "Helvetica-Bold", color: GREEN }}>{bank.bankName}</Text>
+                  {"  "}Account {bank.accountNumber}
+                </Text>
                 {bank.iban && <Text>IBAN: {bank.iban}</Text>}
                 {bank.branchName && <Text>Branch: {bank.branchName}</Text>}
               </View>
             ))
           ) : (
-            <Text>Bank details will be provided separately.</Text>
+            <Text style={styles.bankLine}>Bank details will be provided separately.</Text>
           )}
         </View>
 
         <View style={styles.footer} fixed>
           <Text>{terms}</Text>
-          <Text>Page 1 · Generated {new Date(generatedAt).toLocaleDateString(undefined, { dateStyle: "short" })} · {companyHeaderName}</Text>
+          <Text>
+            {new Date(generatedAt).toLocaleDateString("en-GB", { dateStyle: "short" })} · {companyHeaderName}
+          </Text>
         </View>
       </Page>
     </Document>

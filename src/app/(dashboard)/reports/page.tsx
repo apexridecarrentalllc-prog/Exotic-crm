@@ -126,7 +126,7 @@ export default function ReportsPage() {
         {reportType === "monthly_revenue" && (
           <MonthlyRevenueReport
             data={reportData?.months ?? []}
-            currency="PKR"
+            currency="AED"
             loading={isLoading}
           />
         )}
@@ -134,7 +134,7 @@ export default function ReportsPage() {
         {reportType === "company_billing" && (
           <CompanyBillingReport
             data={reportData?.companies ?? []}
-            currency="PKR"
+            currency="AED"
             loading={isLoading}
           />
         )}
@@ -192,14 +192,14 @@ export default function ReportsPage() {
         )}
 
         {reportType === "ytd_summary" && (
-          <YTDSummary data={reportData ?? null} currency="PKR" loading={isLoading} />
+          <YTDSummary data={reportData ?? null} currency="AED" loading={isLoading} />
         )}
 
         {reportType === "tax_report" && (
           <TaxReport
             items={reportData?.items ?? []}
             totals={reportData?.totals ?? { totalTax: 0, totalWHT: 0 }}
-            currency="PKR"
+            currency="AED"
             loading={isLoading}
           />
         )}

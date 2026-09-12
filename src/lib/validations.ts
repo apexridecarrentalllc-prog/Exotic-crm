@@ -94,7 +94,7 @@ export const companySchema = z.object({
   country: z.string().max(100).optional(),
   notes: z.string().max(2000).optional(),
   paymentTerms: z.string().max(100).optional(),
-  currency: z.string().max(10).optional().default("PKR"),
+  currency: z.string().max(10).optional().default("AED"),
   taxNumber: z.string().max(50).optional(),
   contacts: z.array(contactSchema).optional(),
   bankAccounts: z.array(bankAccountSchema).optional(),
@@ -160,7 +160,7 @@ export const createShipmentSchema = z.object({
   weight: z.number().nonnegative().optional(),
   volume: z.number().nonnegative().optional(),
   cargoValue: z.number().nonnegative().optional(),
-  currency: z.string().max(10).optional().default("PKR"),
+  currency: z.string().max(10).optional().default("AED"),
   isUrgent: z.boolean().optional().default(false),
   internalNotes: z.string().max(2000).optional(),
   orderDate: z.coerce.date().optional(),
@@ -231,7 +231,10 @@ export const bulkImportShipmentRowSchema = z.object({
   Destination: z.string().min(1),
   GoodsDescription: z.string().min(1),
   ContainerNumber: z.string().optional().default(""),
+  AWBNumber: z.string().optional().default(""),
   CargoValue: z.union([z.number(), z.string()]).optional().transform((v) => (typeof v === "string" ? parseFloat(v) || 0 : v ?? 0)),
+  Weight: z.union([z.number(), z.string()]).optional().transform((v) => (typeof v === "string" ? parseFloat(v) || undefined : v)),
+  Volume: z.union([z.number(), z.string()]).optional().transform((v) => (typeof v === "string" ? parseFloat(v) || undefined : v)),
   OrderDate: z
     .union([z.coerce.date(), z.string(), z.number()])
     .optional()
@@ -271,8 +274,8 @@ export const invoiceLineItemSchema = z.object({
 export const createInvoiceSchema = z.object({
   shipmentId: z.string().min(1, "Shipment is required"),
   companyId: z.string().min(1, "Company is required"),
-  dueDate: z.coerce.date(),
-  currency: z.string().max(10).optional().default("PKR"),
+  dueDate: z.coerce.date().optional(),
+  currency: z.string().max(10).optional().default("AED"),
   taxRate: z.number().min(0).max(100).optional().default(0),
   withholdingTax: z.number().nonnegative().optional().default(0),
   notes: z.string().max(2000).optional(),

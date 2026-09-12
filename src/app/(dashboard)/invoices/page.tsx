@@ -8,7 +8,7 @@ import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { InvoiceStatusBadge } from "@/components/invoices/InvoiceStatusBadge";
-import { formatCurrency } from "@/lib/invoice-constants";
+import { formatAmount } from "@/lib/invoice-constants";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -147,20 +147,11 @@ export default function InvoicesPage() {
       cell: (row) => new Date(row.issueDate).toLocaleDateString(),
     },
     {
-      id: "dueDate",
-      header: "Due Date",
-      cell: (row) => (
-        <span className={cn(row.isOverdue && "text-destructive font-medium")}>
-          {new Date(row.dueDate).toLocaleDateString()}
-        </span>
-      ),
-    },
-    {
       id: "totalAmount",
       header: "Total",
       cell: (row) =>
         row.totalAmount != null ? (
-          <span className="tabular-nums">{formatCurrency(row.totalAmount, row.currency)}</span>
+          <span className="tabular-nums">{formatAmount(row.totalAmount)}</span>
         ) : (
           "—"
         ),
@@ -171,7 +162,7 @@ export default function InvoicesPage() {
       cell: (row) =>
         row.paidAmount != null ? (
           <span className="tabular-nums text-emerald-600 dark:text-emerald-400">
-            {formatCurrency(row.paidAmount, row.currency)}
+            {formatAmount(row.paidAmount)}
           </span>
         ) : (
           "—"
@@ -190,7 +181,7 @@ export default function InvoicesPage() {
             )}
           >
             {row.balanceAmount != null ? (
-              bal === 0 ? "✓ 0" : formatCurrency(bal, row.currency)
+              bal === 0 ? "✓ 0" : formatAmount(bal)
             ) : (
               "—"
             )}
@@ -286,11 +277,11 @@ export default function InvoicesPage() {
         </div>
         <div className="rounded-lg border bg-card p-4">
           <p className="text-sm text-muted-foreground">Paid This Month</p>
-          <p className="text-2xl font-semibold">{stats?.paidThisMonth != null ? formatCurrency(stats.paidThisMonth) : "—"}</p>
+          <p className="text-2xl font-semibold">{stats?.paidThisMonth != null ? formatAmount(stats.paidThisMonth) : "—"}</p>
         </div>
         <div className="rounded-lg border bg-card p-4">
           <p className="text-sm text-muted-foreground">Outstanding Total</p>
-          <p className="text-2xl font-semibold">{stats?.outstandingTotal != null ? formatCurrency(stats.outstandingTotal) : "—"}</p>
+          <p className="text-2xl font-semibold">{stats?.outstandingTotal != null ? formatAmount(stats.outstandingTotal) : "—"}</p>
         </div>
       </div>
 

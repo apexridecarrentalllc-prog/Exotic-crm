@@ -49,7 +49,7 @@ async function postHandler(
         weight: source.weight,
         volume: source.volume,
         cargoValue: source.cargoValue,
-        currency: source.currency,
+        currency: "AED",
         isUrgent: source.isUrgent,
         internalNotes: source.internalNotes,
         orderDate: now,

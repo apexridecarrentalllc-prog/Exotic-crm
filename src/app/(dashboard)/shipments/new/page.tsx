@@ -12,7 +12,6 @@ import { Label } from "@/components/ui/Label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { StageBuilder, type StageItem } from "@/components/shipments/StageBuilder";
 import { createShipmentSchema, type CreateShipmentInput } from "@/lib/validations";
-import { CURRENCIES } from "@/lib/constants";
 import { AlertTriangle } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -44,7 +43,7 @@ export default function NewShipmentPage() {
     defaultValues: {
       type: "IMPORT",
       orderDate: new Date(),
-      currency: "PKR",
+      currency: "AED",
       isUrgent: false,
     },
   });
@@ -190,59 +189,6 @@ export default function NewShipmentPage() {
               {errors.goodsDescription && (
                 <p className="text-xs text-destructive">{errors.goodsDescription.message}</p>
               )}
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="containerNumber">Container Number</Label>
-                <Input id="containerNumber" {...register("containerNumber")} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="awbNumber">AWB Number</Label>
-                <Input id="awbNumber" {...register("awbNumber")} />
-              </div>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div className="space-y-2">
-                <Label htmlFor="cargoValue">Cargo Value</Label>
-                <Input
-                  id="cargoValue"
-                  type="number"
-                  step="0.01"
-                  {...register("cargoValue", { valueAsNumber: true })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="currency">Currency</Label>
-                <select
-                  id="currency"
-                  {...register("currency")}
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
-                >
-                  {CURRENCIES.map((c) => (
-                    <option key={c.value} value={c.value}>
-                      {c.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="weight">Weight (KG)</Label>
-                <Input
-                  id="weight"
-                  type="number"
-                  step="0.01"
-                  {...register("weight", { valueAsNumber: true })}
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="volume">Volume (CBM)</Label>
-              <Input
-                id="volume"
-                type="number"
-                step="0.01"
-                {...register("volume", { valueAsNumber: true })}
-              />
             </div>
           </CardContent>
         </Card>

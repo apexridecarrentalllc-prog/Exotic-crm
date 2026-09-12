@@ -41,6 +41,8 @@ type ShipmentRow = {
   origin: string;
   destination: string;
   goodsDescription: string;
+  containerNumber?: string | null;
+  awbNumber?: string | null;
   isUrgent: boolean;
   orderDate: string;
   currency: string;
@@ -227,6 +229,16 @@ export default function ShipmentsPage() {
       ),
     },
     {
+      id: "container",
+      header: "Container",
+      cell: (row) => row.containerNumber || "—",
+    },
+    {
+      id: "awb",
+      header: "AWB",
+      cell: (row) => row.awbNumber || "—",
+    },
+    {
       id: "companies",
       header: "Assigned Companies",
       cell: (row) => {
@@ -279,7 +291,7 @@ export default function ShipmentsPage() {
               outstanding > 0 ? "text-destructive" : "text-muted-foreground"
             )}
           >
-            {row.currency} {outstanding.toLocaleString()}
+            AED {outstanding.toLocaleString()}
           </span>
         );
       },

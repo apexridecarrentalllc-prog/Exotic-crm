@@ -36,8 +36,12 @@ export const COMMON_SERVICE_DESCRIPTIONS = [
 ] as const;
 
 /** Format number as currency with commas and 2 decimals */
-export function formatCurrency(amount: number, currency: string = "PKR"): string {
+export function formatCurrency(amount: number, currency: string = "AED"): string {
   return `${currency} ${amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+export function formatAmount(amount: number): string {
+  return amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 /** Parse payment terms string to days offset (e.g. "Net 30" -> 30) */

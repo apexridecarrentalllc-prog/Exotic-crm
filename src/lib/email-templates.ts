@@ -72,13 +72,9 @@ export function invoiceEmailTemplate(data: InvoiceEmailData): string {
         <td style="border:1px solid ${BORDER};font-weight:600;">Shipment</td>
         <td style="border:1px solid ${BORDER};">${data.shipmentRef}</td>
       </tr>
-      <tr style="background-color:#f9fafb;">
-        <td style="border:1px solid ${BORDER};font-weight:600;">Due Date</td>
-        <td style="border:1px solid ${BORDER};">${data.dueDate}</td>
-      </tr>
       <tr>
         <td style="border:1px solid ${BORDER};font-weight:600;">Amount Due</td>
-        <td style="border:1px solid ${BORDER};font-weight:600;">${data.totalAmount} ${data.currency}</td>
+        <td style="border:1px solid ${BORDER};font-weight:600;">${data.totalAmount}</td>
       </tr>
     </table>
     <p style="margin:0 0 12px;">

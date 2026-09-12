@@ -24,7 +24,6 @@ export function InvoiceSettingsTab({ getSetting, updateSettings, isUpdating }: P
   const [prefixExport, setPrefixExport] = React.useState("");
   const [paymentTerms, setPaymentTerms] = React.useState("");
   const [currency, setCurrency] = React.useState("");
-  const [taxRate, setTaxRate] = React.useState("");
   const [reminderDays, setReminderDays] = React.useState("");
   const [terms, setTerms] = React.useState("");
   const [pdfFooter, setPdfFooter] = React.useState("");
@@ -34,8 +33,7 @@ export function InvoiceSettingsTab({ getSetting, updateSettings, isUpdating }: P
     setPrefixImport(getSetting(SETTING_KEYS.SHIPMENT_PREFIX_IMPORT, "IMP"));
     setPrefixExport(getSetting(SETTING_KEYS.SHIPMENT_PREFIX_EXPORT, "EXP"));
     setPaymentTerms(getSetting(SETTING_KEYS.DEFAULT_PAYMENT_TERMS, "Net 30"));
-    setCurrency(getSetting(SETTING_KEYS.DEFAULT_CURRENCY, "PKR"));
-    setTaxRate(getSetting(SETTING_KEYS.DEFAULT_TAX_RATE, "0"));
+    setCurrency("AED");
     setReminderDays(getSetting(SETTING_KEYS.INVOICE_REMINDER_DAYS, REMINDER_DAYS_DEFAULT));
     setTerms(getSetting(SETTING_KEYS.INVOICE_TERMS, ""));
     setPdfFooter(getSetting(SETTING_KEYS.INVOICE_PDF_FOOTER, ""));
@@ -49,8 +47,8 @@ export function InvoiceSettingsTab({ getSetting, updateSettings, isUpdating }: P
         [SETTING_KEYS.SHIPMENT_PREFIX_IMPORT]: prefixImport,
         [SETTING_KEYS.SHIPMENT_PREFIX_EXPORT]: prefixExport,
         [SETTING_KEYS.DEFAULT_PAYMENT_TERMS]: paymentTerms,
-        [SETTING_KEYS.DEFAULT_CURRENCY]: currency,
-        [SETTING_KEYS.DEFAULT_TAX_RATE]: taxRate,
+        [SETTING_KEYS.DEFAULT_CURRENCY]: "AED",
+        [SETTING_KEYS.DEFAULT_TAX_RATE]: "0",
         [SETTING_KEYS.INVOICE_REMINDER_DAYS]: reminderDays,
         [SETTING_KEYS.INVOICE_TERMS]: terms,
         [SETTING_KEYS.INVOICE_PDF_FOOTER]: pdfFooter,
@@ -88,11 +86,8 @@ export function InvoiceSettingsTab({ getSetting, updateSettings, isUpdating }: P
             </div>
             <div className="space-y-2">
               <Label>Default currency</Label>
-              <Input value={currency} onChange={(e) => setCurrency(e.target.value)} placeholder="PKR" />
-            </div>
-            <div className="space-y-2">
-              <Label>Default tax rate %</Label>
-              <Input type="number" min={0} step={0.01} value={taxRate} onChange={(e) => setTaxRate(e.target.value)} placeholder="0" />
+              <Input value={currency} onChange={(e) => setCurrency(e.target.value)} placeholder="AED" disabled />
+              <p className="text-xs text-muted-foreground">Always UAE Dirham (AED).</p>
             </div>
             <div className="space-y-2 sm:col-span-2">
               <Label>Invoice due reminder days</Label>

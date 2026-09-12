@@ -32,8 +32,7 @@ export default function EditCompanyPage() {
           country: company.country ?? "",
           notes: company.notes ?? "",
           paymentTerms: company.paymentTerms ?? "",
-          currency: company.currency ?? "PKR",
-          taxNumber: company.taxNumber ?? "",
+          currency: "AED",
           contacts:
             company.contacts?.length > 0
               ? company.contacts.map((c: { id: string; name: string; designation?: string | null; phone?: string | null; email?: string | null; isPrimary: boolean }) => ({
@@ -76,8 +75,7 @@ export default function EditCompanyPage() {
           country: data.country || undefined,
           notes: data.notes || undefined,
           paymentTerms: data.paymentTerms || undefined,
-          currency: data.currency || "PKR",
-          taxNumber: data.taxNumber || undefined,
+          currency: "AED",
           contacts: data.contacts?.map((c) => ({
             id: (c as { id?: string }).id,
             name: c.name,

@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { companyFormSchema, type CompanyInput } from "@/lib/validations";
 import type { Resolver } from "react-hook-form";
-import { COMPANY_TYPES, PAYMENT_TERMS, CURRENCIES } from "@/lib/constants";
+import { COMPANY_TYPES, PAYMENT_TERMS, DEFAULT_CURRENCY } from "@/lib/constants";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
@@ -67,8 +67,7 @@ export function CompanyForm({
       name: "",
       type: [],
       paymentTerms: "",
-      currency: "PKR",
-      taxNumber: "",
+      currency: DEFAULT_CURRENCY,
       address: "",
       city: "",
       country: "",
@@ -165,32 +164,6 @@ export function CompanyForm({
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="currency">Default Currency</Label>
-              <Select
-                value={watch("currency") || "PKR"}
-                onValueChange={(v) => setValue("currency", v, { shouldDirty: true })}
-              >
-                <SelectTrigger id="currency">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CURRENCIES.map(({ value, label }) => (
-                    <SelectItem key={value} value={value}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="taxNumber">Tax Number (NTN/STRN)</Label>
-            <Input
-              id="taxNumber"
-              {...register("taxNumber")}
-              placeholder="Tax number"
-            />
           </div>
         </CardContent>
       </Card>

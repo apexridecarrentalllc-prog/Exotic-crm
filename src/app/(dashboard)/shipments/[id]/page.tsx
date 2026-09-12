@@ -335,9 +335,11 @@ export default function ShipmentDetailPage() {
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
                 <p><span className="text-muted-foreground">Goods:</span> {shipment.goodsDescription}</p>
-                {shipment.containerNumber && <p><span className="text-muted-foreground">Container:</span> {shipment.containerNumber}</p>}
-                {shipment.awbNumber && <p><span className="text-muted-foreground">AWB:</span> {shipment.awbNumber}</p>}
-                {shipment.cargoValue != null && <p><span className="text-muted-foreground">Value:</span> {shipment.currency} {Number(shipment.cargoValue).toLocaleString()}</p>}
+                <p><span className="text-muted-foreground">Container:</span> {shipment.containerNumber || "—"}</p>
+                <p><span className="text-muted-foreground">AWB:</span> {shipment.awbNumber || "—"}</p>
+                <p><span className="text-muted-foreground">Cargo value:</span> AED {shipment.cargoValue != null ? Number(shipment.cargoValue).toLocaleString() : "—"}</p>
+                <p><span className="text-muted-foreground">Weight:</span> {shipment.weight != null ? `${Number(shipment.weight).toLocaleString()} KG` : "—"}</p>
+                <p><span className="text-muted-foreground">Volume:</span> {shipment.volume != null ? `${Number(shipment.volume).toLocaleString()} CBM` : "—"}</p>
               </CardContent>
             </Card>
           </div>
@@ -375,14 +377,14 @@ export default function ShipmentDetailPage() {
                     <div>
                       <p className="font-medium">{inv.invoiceNumber}</p>
                       <p className="text-sm text-muted-foreground">
-                        {shipment.currency} {inv.totalAmount.toLocaleString()} · Due {new Date(inv.dueDate).toLocaleDateString()}
+                        AED {inv.totalAmount.toLocaleString()}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant="outline">{inv.status}</Badge>
-                      <span>Paid: {shipment.currency} {inv.paidAmount.toLocaleString()}</span>
+                      <span>Paid: AED {inv.paidAmount.toLocaleString()}</span>
                       <span className={inv.balanceAmount > 0 ? "text-destructive font-medium" : ""}>
-                        Balance: {shipment.currency} {inv.balanceAmount.toLocaleString()}
+                        Balance: AED {inv.balanceAmount.toLocaleString()}
                       </span>
                       <Link href={`/invoices/${inv.id}`}>
                         <Button variant="outline" size="sm">View</Button>
@@ -427,9 +429,9 @@ export default function ShipmentDetailPage() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Invoices and payments for this shipment. Total invoiced: {shipment.currency}{" "}
+                Invoices and payments for this shipment. Total invoiced: AED{" "}
                 {shipment.invoices.reduce((s, i) => s + i.totalAmount, 0).toLocaleString()}. Total paid:{" "}
-                {shipment.currency} {shipment.invoices.reduce((s, i) => s + i.paidAmount, 0).toLocaleString()}.
+                AED {shipment.invoices.reduce((s, i) => s + i.paidAmount, 0).toLocaleString()}.
               </p>
             </CardContent>
           </Card>

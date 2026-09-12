@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
-import { CURRENCIES } from "@/lib/constants";
 import { ShipmentStatusBadge } from "@/components/shipments/ShipmentStatusBadge";
 import { getTypeLabel } from "@/lib/shipment-constants";
 import { Loader2 } from "lucide-react";
@@ -35,7 +34,7 @@ export default function EditShipmentPage() {
     weight: "" as string | number,
     volume: "" as string | number,
     cargoValue: "" as string | number,
-    currency: "PKR",
+    currency: "AED",
     isUrgent: false,
     internalNotes: "",
     expectedDelivery: "",
@@ -58,7 +57,7 @@ export default function EditShipmentPage() {
         weight: shipment.weight ?? "",
         volume: shipment.volume ?? "",
         cargoValue: shipment.cargoValue ?? "",
-        currency: shipment.currency ?? "PKR",
+        currency: "AED",
         isUrgent: !!shipment.isUrgent,
         internalNotes: shipment.internalNotes ?? "",
         expectedDelivery: shipment.expectedDelivery
@@ -82,7 +81,7 @@ export default function EditShipmentPage() {
         weight: form.weight === "" ? null : Number(form.weight),
         volume: form.volume === "" ? null : Number(form.volume),
         cargoValue: form.cargoValue === "" ? null : Number(form.cargoValue),
-        currency: form.currency,
+        currency: "AED",
         isUrgent: form.isUrgent,
         internalNotes: form.internalNotes || null,
         expectedDelivery: form.expectedDelivery ? new Date(form.expectedDelivery).toISOString() : null,
@@ -224,7 +223,7 @@ export default function EditShipmentPage() {
             </div>
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="space-y-2">
-                <Label htmlFor="cargoValue">Cargo value</Label>
+                <Label htmlFor="cargoValue">Cargo value (AED)</Label>
                 <Input
                   id="cargoValue"
                   type="number"
@@ -235,16 +234,7 @@ export default function EditShipmentPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="currency">Currency</Label>
-                <select
-                  id="currency"
-                  value={form.currency}
-                  onChange={(e) => setForm((f) => ({ ...f, currency: e.target.value }))}
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
-                >
-                  {CURRENCIES.map((c) => (
-                    <option key={c.value} value={c.value}>{c.label}</option>
-                  ))}
-                </select>
+                <Input id="currency" value="AED — UAE Dirham" disabled />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="weight">Weight (KG)</Label>

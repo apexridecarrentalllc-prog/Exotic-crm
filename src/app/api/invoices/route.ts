@@ -132,7 +132,7 @@ async function postHandler(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { shipmentId, companyId, dueDate, currency, taxRate, withholdingTax, notes, lineItems } = parsed.data;
+    const { shipmentId, companyId, dueDate, lineItems } = parsed.data;
 
     let subtotal = 0;
     const lineItemData = lineItems.map((line, i) => {
@@ -143,13 +143,13 @@ async function postHandler(request: NextRequest) {
         quantity: line.quantity,
         unitRate: line.unitRate,
         amount,
-        taxRate: line.taxRate ?? 0,
+        taxRate: 0,
         sortOrder: i,
       };
     });
 
-    const taxAmount = subtotal * ((taxRate ?? 0) / 100);
-    const totalAmount = subtotal + taxAmount - (withholdingTax ?? 0);
+    const taxAmount = 0;
+    const totalAmount = subtotal;
     const balanceAmount = totalAmount;
 
     const invoiceNumber = await generateInvoiceNumber();
@@ -163,17 +163,17 @@ async function postHandler(request: NextRequest) {
         createdById: userId,
         status: "DRAFT",
         issueDate,
-        dueDate,
-        currency: currency ?? "PKR",
+        dueDate: dueDate ?? issueDate,
+        currency: "AED",
         exchangeRate: 1,
         subtotal,
-        taxRate: taxRate ?? 0,
+        taxRate: 0,
         taxAmount,
-        withholdingTax: withholdingTax ?? 0,
+        withholdingTax: 0,
         totalAmount,
         paidAmount: 0,
         balanceAmount,
-        notes: notes ?? undefined,
+        notes: undefined,
         lineItems: {
           create: lineItemData.map((line) => ({
             description: line.description,

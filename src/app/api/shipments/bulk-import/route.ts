@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { bulkImportShipmentRowSchema } from "@/lib/validations";
 import { generateShipmentRefInTx } from "@/lib/shipment-ref";
 
-const EXPECTED_COLUMNS = ["Type", "Origin", "Destination", "GoodsDescription", "ContainerNumber", "CargoValue", "OrderDate"];
+const EXPECTED_COLUMNS = ["Type", "Origin", "Destination", "GoodsDescription", "ContainerNumber", "AWBNumber", "CargoValue", "Weight", "Volume", "OrderDate"];
 
 function normalizeRow(row: Record<string, unknown>): Record<string, unknown> {
   const keyMap: Record<string, string> = {};
@@ -77,7 +77,11 @@ async function postHandler(request: NextRequest) {
               destination: row.Destination,
               goodsDescription: row.GoodsDescription,
               containerNumber: row.ContainerNumber || undefined,
+              awbNumber: row.AWBNumber || undefined,
               cargoValue: row.CargoValue != null && row.CargoValue > 0 ? row.CargoValue : undefined,
+              weight: row.Weight != null && !Number.isNaN(row.Weight) ? row.Weight : undefined,
+              volume: row.Volume != null && !Number.isNaN(row.Volume) ? row.Volume : undefined,
+              currency: "AED",
               orderDate,
               createdById: userId,
             },

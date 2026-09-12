@@ -277,7 +277,7 @@ export default function CompaniesPage() {
         <div>
           <span className="text-sm text-muted-foreground">Total Outstanding</span>
           <p className="text-xl font-semibold tabular-nums">
-            {data?.data?.[0]?.currency ?? "PKR"} {totalOutstanding.toLocaleString()}
+            {data?.data?.[0]?.currency ?? "AED"} {totalOutstanding.toLocaleString()}
           </p>
         </div>
       </div>

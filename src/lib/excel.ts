@@ -109,7 +109,7 @@ export async function exportShipmentsToExcel(
       s.containerNumber ?? "",
       s.awbNumber ?? "",
       s.cargoValue ?? "",
-      s.currency ?? "PKR",
+      s.currency ?? "AED",
       formatDate(s.orderDate),
       formatDate(s.expectedDelivery),
       formatDate(s.actualDelivery),
@@ -187,10 +187,6 @@ export async function exportInvoicesToExcel(invoices: InvoiceForExport[]): Promi
     "Company",
     "Shipment",
     "Issue Date",
-    "Due Date",
-    "Currency",
-    "Subtotal",
-    "Tax",
     "Total",
     "Paid",
     "Balance",
@@ -205,10 +201,6 @@ export async function exportInvoicesToExcel(invoices: InvoiceForExport[]): Promi
       inv.company?.name ?? "",
       inv.shipment?.referenceNumber ?? "",
       formatDate(inv.issueDate),
-      formatDate(inv.dueDate),
-      inv.currency ?? "PKR",
-      Number(inv.subtotal),
-      Number(inv.taxAmount ?? 0),
       Number(inv.totalAmount),
       Number(inv.paidAmount ?? 0),
       Number(inv.balanceAmount ?? 0),
@@ -223,7 +215,7 @@ export async function exportInvoicesToExcel(invoices: InvoiceForExport[]): Promi
   autoSizeColumns(wsInv);
 
   const wsItems = wb.addWorksheet("Line Items", { views: [{ state: "frozen", ySplit: 1 }] });
-  const itemHeaders = ["Invoice #", "Description", "Quantity", "Unit Rate", "Amount", "Tax Rate"];
+  const itemHeaders = ["Invoice #", "Description", "Quantity", "Unit Rate", "Amount"];
   wsItems.addRow(itemHeaders);
   applyHeaderStyle(wsItems, wsItems.getRow(1));
 
@@ -236,7 +228,6 @@ export async function exportInvoicesToExcel(invoices: InvoiceForExport[]): Promi
         Number(it.quantity),
         Number(it.unitRate),
         Number(it.amount),
-        Number(it.taxRate ?? 0),
       ]);
     }
   }
@@ -405,10 +396,10 @@ export async function exportTransactionsToExcel(
 export async function getShipmentsImportTemplateBuffer(): Promise<ExcelJS.Buffer> {
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet("Shipments", { views: [{ state: "frozen", ySplit: 1 }] });
-  const headers = ["Type", "Origin", "Destination", "GoodsDescription", "ContainerNumber", "CargoValue", "OrderDate"];
+  const headers = ["Type", "Origin", "Destination", "GoodsDescription", "ContainerNumber", "AWBNumber", "CargoValue", "Weight", "Volume", "OrderDate"];
   ws.addRow(headers);
   applyHeaderStyle(ws, ws.getRow(1));
-  ws.addRow(["IMPORT", "Karachi Port", "Lahore", "Electronics", "CONT-001", "50000", "2025-01-15"]);
+  ws.addRow(["IMPORT", "Jebel Ali", "Abu Dhabi", "Electronics", "CONT-001", "AWB-001", "50000", "1200", "28", "2025-01-15"]);
   const typeValidation: ExcelJS.DataValidation = {
     type: "list",
     allowBlank: false,

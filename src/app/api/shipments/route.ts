@@ -180,7 +180,7 @@ async function postHandler(request: NextRequest) {
         weight: parsed.data.weight != null ? parsed.data.weight : undefined,
         volume: parsed.data.volume != null ? parsed.data.volume : undefined,
         cargoValue: parsed.data.cargoValue != null ? parsed.data.cargoValue : undefined,
-        currency: parsed.data.currency ?? "PKR",
+        currency: "AED",
         isUrgent: parsed.data.isUrgent ?? false,
         internalNotes: parsed.data.internalNotes ?? undefined,
         orderDate,

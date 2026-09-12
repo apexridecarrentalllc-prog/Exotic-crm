@@ -20,12 +20,11 @@ export const PAYMENT_TERMS = [
   { value: "Custom", label: "Custom" },
 ] as const;
 
+/** System currency is always UAE Dirham */
+export const DEFAULT_CURRENCY = "AED";
+export const DEFAULT_CURRENCY_LABEL = "UAE Dirham (AED)";
+
 /** Default currencies */
 export const CURRENCIES = [
-  { value: "PKR", label: "PKR" },
-  { value: "USD", label: "USD" },
-  { value: "EUR", label: "EUR" },
-  { value: "GBP", label: "GBP" },
-  { value: "AED", label: "AED" },
-  { value: "SAR", label: "SAR" },
+  { value: "AED", label: "AED — UAE Dirham" },
 ] as const;

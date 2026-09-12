@@ -113,7 +113,7 @@ async function patchHandler(
     if (parsed.data.weight !== undefined) updateData.weight = parsed.data.weight;
     if (parsed.data.volume !== undefined) updateData.volume = parsed.data.volume;
     if (parsed.data.cargoValue !== undefined) updateData.cargoValue = parsed.data.cargoValue;
-    if (parsed.data.currency !== undefined) updateData.currency = parsed.data.currency;
+    updateData.currency = "AED";
     if (parsed.data.isUrgent !== undefined) updateData.isUrgent = parsed.data.isUrgent;
     if (parsed.data.internalNotes !== undefined) updateData.internalNotes = parsed.data.internalNotes;
     if (parsed.data.expectedDelivery !== undefined) updateData.expectedDelivery = parsed.data.expectedDelivery;

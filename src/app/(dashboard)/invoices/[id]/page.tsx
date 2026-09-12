@@ -19,7 +19,7 @@ import { PaymentHistory } from "@/components/invoices/PaymentHistory";
 import { PaymentDialog } from "@/components/invoices/PaymentDialog";
 import { CreditNoteDialog } from "@/components/invoices/CreditNoteDialog";
 import { SendInvoiceDialog } from "@/components/invoices/SendInvoiceDialog";
-import { formatCurrency } from "@/lib/invoice-constants";
+import { formatAmount } from "@/lib/invoice-constants";
 import { DownloadExportButton } from "@/components/shared/DownloadExportButton";
 import {
   Pencil,
@@ -202,15 +202,10 @@ export default function InvoiceDetailPage() {
           <InvoicePreview
             invoiceNumber={invoice.invoiceNumber}
             issueDate={invoice.issueDate}
-            dueDate={invoice.dueDate}
-            currency={invoice.currency}
             companyName={invoice.company.name}
             shipmentReference={invoice.shipment.referenceNumber}
             lineItems={lineItemsForPreview}
             subtotal={invoice.subtotal}
-            taxRate={invoice.taxRate}
-            taxAmount={invoice.taxAmount}
-            withholdingTax={invoice.withholdingTax}
             totalAmount={invoice.totalAmount}
             isPreview
           />
@@ -229,10 +224,10 @@ export default function InvoiceDetailPage() {
                 />
               </div>
               <p className="text-sm text-muted-foreground">
-                {formatCurrency(invoice.paidAmount, invoice.currency)} of {formatCurrency(invoice.totalAmount, invoice.currency)} paid
+                {formatAmount(invoice.paidAmount)} of {formatAmount(invoice.totalAmount)} paid
               </p>
               <p className={invoice.balanceAmount > 0 ? "text-lg font-semibold text-destructive" : "text-lg font-semibold text-emerald-600"}>
-                Balance: {formatCurrency(invoice.balanceAmount, invoice.currency)}
+                Balance: {formatAmount(invoice.balanceAmount)}
               </p>
               {invoice.balanceAmount > 0 && (
                 <Button className="w-full" size="sm" onClick={() => setPaymentDialogOpen(true)}>
@@ -258,7 +253,6 @@ export default function InvoiceDetailPage() {
             <CardContent className="text-sm space-y-2">
               <p>Created {new Date(invoice.issueDate).toLocaleDateString(undefined, { dateStyle: "medium" })}</p>
               {invoice.sentAt && <p>Sent {new Date(invoice.sentAt).toLocaleDateString(undefined, { dateStyle: "medium" })}</p>}
-              <p>Due {new Date(invoice.dueDate).toLocaleDateString(undefined, { dateStyle: "medium" })}</p>
             </CardContent>
           </Card>
 

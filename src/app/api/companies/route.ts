@@ -156,7 +156,7 @@ async function postHandler(request: NextRequest) {
         country: companyData.country ?? undefined,
         notes: companyData.notes ?? undefined,
         paymentTerms: companyData.paymentTerms ?? undefined,
-        currency: companyData.currency ?? "PKR",
+        currency: companyData.currency ?? "AED",
         taxNumber: companyData.taxNumber ?? undefined,
         contacts:
           contacts && contacts.length > 0

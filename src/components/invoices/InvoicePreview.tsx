@@ -1,21 +1,16 @@
 "use client";
 
-import { formatCurrency } from "@/lib/invoice-constants";
+import { formatAmount } from "@/lib/invoice-constants";
 import type { LineItemRow } from "./InvoiceLineItemsEditor";
 
 export interface InvoicePreviewProps {
   invoiceNumber?: string;
   issueDate?: string;
-  dueDate?: string;
-  currency?: string;
   companyName?: string;
   companyAddress?: string;
   shipmentReference?: string;
   lineItems: LineItemRow[];
   subtotal: number;
-  taxRate: number;
-  taxAmount: number;
-  withholdingTax: number;
   totalAmount: number;
   isPreview?: boolean;
   className?: string;
@@ -24,16 +19,10 @@ export interface InvoicePreviewProps {
 export function InvoicePreview({
   invoiceNumber = "—",
   issueDate,
-  dueDate,
-  currency = "PKR",
   companyName,
   companyAddress,
   shipmentReference,
   lineItems,
-  subtotal,
-  taxRate,
-  taxAmount,
-  withholdingTax,
   totalAmount,
   isPreview = true,
   className = "",
@@ -42,55 +31,54 @@ export function InvoicePreview({
     d ? new Date(d).toLocaleDateString(undefined, { dateStyle: "medium" }) : "—";
 
   return (
-    <div className={`rounded-lg border bg-card text-sm ${className}`}>
+    <div className={`overflow-hidden rounded-lg border border-[#C5D9B4] bg-white text-sm text-[#1F3A0D] ${className}`}>
       {isPreview && (
-        <p className="text-xs text-muted-foreground px-4 pt-2 border-b pb-2">This is a preview</p>
+        <p className="text-xs text-[#3F730A] px-4 pt-2 pb-2 border-b border-[#C5D9B4] bg-[#F4F8F0]">This is a preview</p>
       )}
+      <div className="h-1 bg-[#3F730A]" />
       <div className="p-4 space-y-4">
-        <div className="border-b pb-3">
-          <h3 className="text-lg font-semibold">Invoice</h3>
-          <div className="grid grid-cols-2 gap-x-4 mt-2 text-muted-foreground">
+        <div className="border-b border-[#C5D9B4] pb-3">
+          <h3 className="text-lg font-semibold tracking-wide text-[#3F730A]">Invoice</h3>
+          <div className="grid grid-cols-2 gap-x-4 mt-2 text-[#4B6B38]">
             <span>Invoice #</span>
-            <span className="font-medium text-foreground">{invoiceNumber}</span>
+            <span className="font-medium text-[#1F3A0D]">{invoiceNumber}</span>
             <span>Date</span>
-            <span>{formatDate(issueDate)}</span>
-            <span>Due date</span>
-            <span>{formatDate(dueDate)}</span>
+            <span className="text-[#1F3A0D]">{formatDate(issueDate)}</span>
             {shipmentReference && (
               <>
                 <span>Shipment</span>
-                <span>{shipmentReference}</span>
+                <span className="text-[#1F3A0D]">{shipmentReference}</span>
               </>
             )}
           </div>
         </div>
 
         {companyName && (
-          <div>
-            <p className="text-muted-foreground text-xs uppercase tracking-wide">Bill to</p>
+          <div className="border-l-[3px] border-[#3F730A] bg-[#F4F8F0] px-3 py-2">
+            <p className="text-[#3F730A] text-xs uppercase tracking-wide">Bill to</p>
             <p className="font-medium">{companyName}</p>
-            {companyAddress && <p className="text-muted-foreground text-xs mt-0.5">{companyAddress}</p>}
+            {companyAddress && <p className="text-[#4B6B38] text-xs mt-0.5">{companyAddress}</p>}
           </div>
         )}
 
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b">
-                <th className="text-left py-2 font-medium">Description</th>
-                <th className="text-right py-2 w-16">Qty</th>
-                <th className="text-right py-2 w-24">Rate</th>
-                <th className="text-right py-2 w-24">Amount</th>
+              <tr className="bg-[#3F730A] text-white">
+                <th className="text-left py-2 px-2 font-medium">Description</th>
+                <th className="text-right py-2 px-2 w-16">Qty</th>
+                <th className="text-right py-2 px-2 w-24">Rate</th>
+                <th className="text-right py-2 px-2 w-24">Amount</th>
               </tr>
             </thead>
             <tbody>
               {lineItems.map((row, i) => (
-                <tr key={i} className="border-b">
-                  <td className="py-2">{row.description || "—"}</td>
-                  <td className="text-right tabular-nums">{row.quantity}</td>
-                  <td className="text-right tabular-nums">{formatCurrency(row.unitRate, currency)}</td>
-                  <td className="text-right tabular-nums">
-                    {formatCurrency(row.quantity * row.unitRate, currency)}
+                <tr key={i} className={`border-b border-[#C5D9B4] ${i % 2 === 1 ? "bg-[#F4F8F0]" : "bg-white"}`}>
+                  <td className="py-2 px-2">{row.description || "—"}</td>
+                  <td className="text-right tabular-nums px-2">{row.quantity}</td>
+                  <td className="text-right tabular-nums px-2">{formatAmount(row.unitRate)}</td>
+                  <td className="text-right tabular-nums px-2">
+                    {formatAmount(row.quantity * row.unitRate)}
                   </td>
                 </tr>
               ))}
@@ -98,24 +86,10 @@ export function InvoicePreview({
           </table>
         </div>
 
-        <div className="ml-auto w-48 space-y-1 border-t pt-2">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Subtotal</span>
-            <span>{formatCurrency(subtotal, currency)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Tax ({taxRate}%)</span>
-            <span>{formatCurrency(taxAmount, currency)}</span>
-          </div>
-          {withholdingTax > 0 && (
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Withholding</span>
-              <span>-{formatCurrency(withholdingTax, currency)}</span>
-            </div>
-          )}
-          <div className="flex justify-between font-semibold pt-1">
+        <div className="ml-auto w-48">
+          <div className="flex justify-between bg-[#3F730A] text-white font-semibold px-3 py-2">
             <span>Total</span>
-            <span>{formatCurrency(totalAmount, currency)}</span>
+            <span>{formatAmount(totalAmount)}</span>
           </div>
         </div>
       </div>

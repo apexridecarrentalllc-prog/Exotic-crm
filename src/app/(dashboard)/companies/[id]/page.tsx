@@ -76,6 +76,7 @@ type CompanyDetail = {
     totalAmount: number;
     balanceAmount: number;
     dueDate: string;
+    issueDate: string;
     shipment?: { id: string; referenceNumber: string; status: string };
   }>;
   recentShipments: Array<{
@@ -116,7 +117,7 @@ async function fetchCompany(id: string): Promise<CompanyDetail> {
   return res.json();
 }
 
-async function fetchCompanyInvoices(id: string): Promise<{ data: Array<{ id: string; invoiceNumber: string; status: string; totalAmount: number; balanceAmount: number; dueDate: string; shipment?: { referenceNumber: string } }> }> {
+async function fetchCompanyInvoices(id: string): Promise<{ data: Array<{ id: string; invoiceNumber: string; status: string; totalAmount: number; balanceAmount: number; issueDate: string; shipment?: { referenceNumber: string } }> }> {
   const res = await fetch(`/api/companies/${id}/invoices`);
   if (!res.ok) throw new Error("Failed to fetch invoices");
   return res.json();
@@ -289,7 +290,6 @@ function CompanyDetailContent() {
                 </p>
               )}
               {company.paymentTerms && <p>Payment terms: {company.paymentTerms}</p>}
-              {company.taxNumber && <p>Tax: {company.taxNumber}</p>}
               {company.notes && <p className="text-muted-foreground">{company.notes}</p>}
             </CardContent>
           </Card>
@@ -377,7 +377,7 @@ function CompanyDetailContent() {
                   <TableBody>
                     {company.recentInvoices?.slice(0, 10).map((inv) => (
                       <TableRow key={inv.id}>
-                        <TableCell>{new Date(inv.dueDate).toLocaleDateString()}</TableCell>
+                        <TableCell>{new Date(inv.issueDate ?? inv.dueDate).toLocaleDateString()}</TableCell>
                         <TableCell>Invoice</TableCell>
                         <TableCell>{inv.invoiceNumber}</TableCell>
                         <TableCell className="text-right">{company.currency} {inv.totalAmount.toLocaleString()}</TableCell>
@@ -463,7 +463,7 @@ function CompanyDetailContent() {
                     <TableRow className="hover:bg-transparent">
                       <TableHead>Invoice #</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Due Date</TableHead>
+                      <TableHead>Date</TableHead>
                       <TableHead className="text-right">Total</TableHead>
                       <TableHead className="text-right">Balance</TableHead>
                       <TableHead></TableHead>
@@ -478,7 +478,7 @@ function CompanyDetailContent() {
                           </Link>
                         </TableCell>
                         <TableCell><Badge variant="outline">{inv.status}</Badge></TableCell>
-                        <TableCell>{new Date(inv.dueDate).toLocaleDateString()}</TableCell>
+                        <TableCell>{new Date(inv.issueDate).toLocaleDateString()}</TableCell>
                         <TableCell className="text-right">{company.currency} {inv.totalAmount.toLocaleString()}</TableCell>
                         <TableCell className="text-right">{company.currency} {inv.balanceAmount.toLocaleString()}</TableCell>
                         <TableCell>

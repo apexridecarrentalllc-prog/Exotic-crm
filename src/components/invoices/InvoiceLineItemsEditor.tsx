@@ -4,7 +4,7 @@ import * as React from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Plus, Trash2 } from "lucide-react";
-import { COMMON_SERVICE_DESCRIPTIONS, formatCurrency } from "@/lib/invoice-constants";
+import { COMMON_SERVICE_DESCRIPTIONS, formatAmount } from "@/lib/invoice-constants";
 
 export interface LineItemRow {
   description: string;
@@ -27,7 +27,6 @@ function getAmount(row: LineItemRow): number {
 export function InvoiceLineItemsEditor({
   items,
   onChange,
-  currency = "PKR",
   errors,
 }: InvoiceLineItemsEditorProps) {
   const [suggestionOpen, setSuggestionOpen] = React.useState<number | null>(null);
@@ -65,7 +64,6 @@ export function InvoiceLineItemsEditor({
               <th className="text-left p-2 font-medium">Description</th>
               <th className="text-right p-2 w-20 font-medium">Qty</th>
               <th className="text-right p-2 w-28 font-medium">Unit Rate</th>
-              <th className="text-right p-2 w-16 font-medium">Tax %</th>
               <th className="text-right p-2 w-28 font-medium">Amount</th>
               <th className="w-10" />
             </tr>
@@ -121,19 +119,8 @@ export function InvoiceLineItemsEditor({
                     className="h-9 text-right border-0 bg-transparent focus-visible:ring-1"
                   />
                 </td>
-                <td className="p-2">
-                  <Input
-                    type="number"
-                    min={0}
-                    max={100}
-                    step={0.1}
-                    value={row.taxRate ?? ""}
-                    onChange={(e) => updateRow(index, { taxRate: Number(e.target.value) || 0 })}
-                    className="h-9 text-right border-0 bg-transparent focus-visible:ring-1 w-14"
-                  />
-                </td>
                 <td className="p-2 text-right tabular-nums text-muted-foreground">
-                  {formatCurrency(getAmount(row), currency)}
+                  {formatAmount(getAmount(row))}
                 </td>
                 <td className="p-1">
                   <Button

@@ -12,9 +12,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { InvoiceLineItemsEditor, type LineItemRow } from "@/components/invoices/InvoiceLineItemsEditor";
 import { InvoiceTotals } from "@/components/invoices/InvoiceTotals";
 import { InvoicePreview } from "@/components/invoices/InvoicePreview";
-import { CURRENCIES } from "@/lib/constants";
-import { paymentTermsToDays } from "@/lib/invoice-constants";
-import { addDays } from "date-fns";
 import { AlertTriangle } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -31,12 +28,6 @@ async function fetchShipments(search?: string): Promise<{ data: ShipmentOption[]
   sp.set("limit", "50");
   const res = await fetch(`/api/shipments?${sp}`);
   if (!res.ok) throw new Error("Failed to fetch shipments");
-  return res.json();
-}
-
-async function fetchCompany(id: string) {
-  const res = await fetch(`/api/companies/${id}`);
-  if (!res.ok) throw new Error("Failed to fetch company");
   return res.json();
 }
 
@@ -59,26 +50,14 @@ export default function NewInvoicePage() {
   const [selectedShipment, setSelectedShipment] = React.useState<ShipmentOption | null>(null);
   const [selectedCompanyId, setSelectedCompanyId] = React.useState("");
   const [issueDate, setIssueDate] = React.useState(() => new Date().toISOString().slice(0, 10));
-  const [dueDate, setDueDate] = React.useState(() => new Date().toISOString().slice(0, 10));
-  const [currency, setCurrency] = React.useState("PKR");
-  const [exchangeRate, setExchangeRate] = React.useState(1);
-  const [taxRate, setTaxRate] = React.useState(0);
-  const [withholdingTax, setWithholdingTax] = React.useState(0);
   const [lineItems, setLineItems] = React.useState<LineItemRow[]>([
     { description: "", quantity: 1, unitRate: 0, taxRate: 0 },
   ]);
-  const [notes, setNotes] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const { data: shipmentsData } = useQuery({
     queryKey: ["shipments-search", shipmentSearch],
     queryFn: () => fetchShipments(shipmentSearch || undefined),
-  });
-
-  const { data: companyData } = useQuery({
-    queryKey: ["company", selectedCompanyId],
-    queryFn: () => fetchCompany(selectedCompanyId),
-    enabled: !!selectedCompanyId,
   });
 
   const { data: existingInvoices } = useQuery({
@@ -101,19 +80,11 @@ export default function NewInvoicePage() {
     return existingInvoices.data.some((inv) => inv.companyId === selectedCompanyId);
   }, [selectedCompanyId, existingInvoices]);
 
-  React.useEffect(() => {
-    if (step === 2 && companyData?.paymentTerms) {
-      const days = paymentTermsToDays(companyData.paymentTerms);
-      setDueDate(addDays(new Date(), days).toISOString().slice(0, 10));
-    }
-  }, [step]); // eslint-disable-line react-hooks/exhaustive-deps -- set default due date when entering step 2
-
   const subtotal = React.useMemo(
     () => lineItems.reduce((s, row) => s + row.quantity * row.unitRate, 0),
     [lineItems]
   );
-  const taxAmount = subtotal * (taxRate / 100);
-  const totalAmount = subtotal + taxAmount - withholdingTax;
+  const totalAmount = subtotal;
 
   const canProceedStep1 = selectedShipment && selectedCompanyId;
   const canProceedStep2 = lineItems.some(
@@ -131,11 +102,10 @@ export default function NewInvoicePage() {
       const payload = {
         shipmentId: selectedShipment.id,
         companyId: selectedCompanyId,
-        dueDate: new Date(dueDate).toISOString(),
-        currency,
-        taxRate,
-        withholdingTax,
-        notes: notes.trim() || undefined,
+        dueDate: new Date(issueDate).toISOString(),
+        currency: "AED",
+        taxRate: 0,
+        withholdingTax: 0,
         lineItems: lineItems
           .filter((r) => r.description.trim())
           .map((r) => ({
@@ -268,75 +238,11 @@ export default function NewInvoicePage() {
               <CardTitle>Invoice Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Invoice Date</Label>
-                  <Input type="date" value={issueDate} onChange={(e) => setIssueDate(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Due Date</Label>
-                  <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
-                </div>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Currency</Label>
-                  <select
-                    value={currency}
-                    onChange={(e) => setCurrency(e.target.value)}
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
-                  >
-                    {CURRENCIES.map((c) => (
-                      <option key={c.value} value={c.value}>{c.label}</option>
-                    ))}
-                  </select>
-                </div>
-                {currency !== "PKR" && (
-                  <div className="space-y-2">
-                    <Label>Exchange Rate</Label>
-                    <Input
-                      type="number"
-                      step={0.0001}
-                      value={exchangeRate}
-                      onChange={(e) => setExchangeRate(Number(e.target.value) || 1)}
-                    />
-                  </div>
-                )}
-              </div>
-              <InvoiceLineItemsEditor items={lineItems} onChange={setLineItems} currency={currency} />
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Overall Tax Rate %</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    max={100}
-                    step={0.1}
-                    value={taxRate}
-                    onChange={(e) => setTaxRate(Number(e.target.value) || 0)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Withholding Tax</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    step={0.01}
-                    value={withholdingTax}
-                    onChange={(e) => setWithholdingTax(Number(e.target.value) || 0)}
-                  />
-                </div>
-              </div>
               <div className="space-y-2">
-                <Label>Notes</Label>
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  rows={2}
-                  className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
-                  placeholder="Optional notes"
-                />
+                <Label>Invoice Date</Label>
+                <Input type="date" value={issueDate} onChange={(e) => setIssueDate(e.target.value)} />
               </div>
+              <InvoiceLineItemsEditor items={lineItems} onChange={setLineItems} />
               <div className="flex justify-between">
                 <Button variant="outline" onClick={() => setStep(1)}>Back</Button>
                 <Button onClick={() => setStep(3)} disabled={!canProceedStep2}>Next: Review</Button>
@@ -351,11 +257,7 @@ export default function NewInvoicePage() {
               <CardContent>
                 <InvoiceTotals
                   subtotal={subtotal}
-                  taxRate={taxRate}
-                  taxAmount={taxAmount}
-                  withholdingTax={withholdingTax}
                   totalAmount={totalAmount}
-                  currency={currency}
                 />
               </CardContent>
             </Card>
@@ -364,12 +266,7 @@ export default function NewInvoicePage() {
               shipmentReference={selectedShipment?.referenceNumber}
               lineItems={lineItems}
               issueDate={issueDate}
-              dueDate={dueDate}
-              currency={currency}
               subtotal={subtotal}
-              taxRate={taxRate}
-              taxAmount={taxAmount}
-              withholdingTax={withholdingTax}
               totalAmount={totalAmount}
               isPreview
             />
@@ -389,11 +286,7 @@ export default function NewInvoicePage() {
             </p>
             <InvoiceTotals
               subtotal={subtotal}
-              taxRate={taxRate}
-              taxAmount={taxAmount}
-              withholdingTax={withholdingTax}
               totalAmount={totalAmount}
-              currency={currency}
             />
             <div className="flex flex-wrap gap-3">
               <Button variant="outline" onClick={() => setStep(2)}>Back</Button>

@@ -22,8 +22,8 @@ export function CurrencyTaxTab({ getSetting, updateSettings, isUpdating }: Props
   const [taxRatesJson, setTaxRatesJson] = React.useState("");
 
   React.useEffect(() => {
-    setBaseCurrency(getSetting(SETTING_KEYS.BASE_CURRENCY, "PKR"));
-    setCurrenciesEnabled(getSetting(SETTING_KEYS.CURRENCIES_ENABLED, "PKR,USD,EUR"));
+    setBaseCurrency(getSetting(SETTING_KEYS.BASE_CURRENCY, "AED"));
+    setCurrenciesEnabled(getSetting(SETTING_KEYS.CURRENCIES_ENABLED, "AED"));
     setTaxRatesJson(getSetting(SETTING_KEYS.TAX_RATES, ""));
   }, [getSetting]);
 
@@ -54,14 +54,14 @@ export function CurrencyTaxTab({ getSetting, updateSettings, isUpdating }: Props
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label>Base currency</Label>
-              <Input value={baseCurrency} onChange={(e) => setBaseCurrency(e.target.value)} placeholder="PKR" />
+              <Input value={baseCurrency} onChange={(e) => setBaseCurrency(e.target.value)} placeholder="AED" />
             </div>
             <div className="space-y-2">
               <Label>Enabled currencies</Label>
               <Input
                 value={currenciesEnabled}
                 onChange={(e) => setCurrenciesEnabled(e.target.value)}
-                placeholder="PKR,USD,EUR"
+                placeholder="AED"
               />
               <p className="text-xs text-muted-foreground">Comma-separated codes.</p>
             </div>

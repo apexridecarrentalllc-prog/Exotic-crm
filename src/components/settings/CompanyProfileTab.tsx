@@ -27,7 +27,6 @@ export function CompanyProfileTab({ getSetting, updateSettings, isUpdating }: Pr
   const [phone, setPhone] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [website, setWebsite] = React.useState("");
-  const [ntn, setNtn] = React.useState("");
   const [strn, setStrn] = React.useState("");
   const [logoUrl, setLogoUrl] = React.useState("");
   const [logoUploading, setLogoUploading] = React.useState(false);
@@ -41,7 +40,6 @@ export function CompanyProfileTab({ getSetting, updateSettings, isUpdating }: Pr
     setPhone(getSetting(SETTING_KEYS.COMPANY_PHONE, ""));
     setEmail(getSetting(SETTING_KEYS.COMPANY_EMAIL, ""));
     setWebsite(getSetting(SETTING_KEYS.COMPANY_WEBSITE, ""));
-    setNtn(getSetting(SETTING_KEYS.COMPANY_NTN, ""));
     setStrn(getSetting(SETTING_KEYS.COMPANY_STRN, ""));
     setLogoUrl(getSetting(SETTING_KEYS.COMPANY_LOGO, ""));
   }, [getSetting]);
@@ -57,7 +55,6 @@ export function CompanyProfileTab({ getSetting, updateSettings, isUpdating }: Pr
         [SETTING_KEYS.COMPANY_PHONE]: phone,
         [SETTING_KEYS.COMPANY_EMAIL]: email,
         [SETTING_KEYS.COMPANY_WEBSITE]: website,
-        [SETTING_KEYS.COMPANY_NTN]: ntn,
         [SETTING_KEYS.COMPANY_STRN]: strn,
       });
       toast.success("Company profile saved");
@@ -160,11 +157,7 @@ export function CompanyProfileTab({ getSetting, updateSettings, isUpdating }: Pr
               <Input id="company_website" value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://example.com" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="company_ntn">Tax Number (NTN)</Label>
-              <Input id="company_ntn" value={ntn} onChange={(e) => setNtn(e.target.value)} placeholder="1234567-8" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="company_strn">GST Number (STRN)</Label>
+              <Label htmlFor="company_strn">Trade license / tax ID</Label>
               <Input id="company_strn" value={strn} onChange={(e) => setStrn(e.target.value)} placeholder="Optional" />
             </div>
           </div>

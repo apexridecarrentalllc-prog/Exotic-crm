@@ -178,7 +178,7 @@ model Company {
   notes        String?
   isActive     Boolean   @default(true)
   paymentTerms String?
-  currency     String    @default("PKR")
+  currency     String    @default("AED")
   taxNumber    String?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
@@ -246,7 +246,7 @@ model Shipment {
   weight           Float?
   volume           Float?
   cargoValue       Float?
-  currency         String           @default("PKR")
+  currency         String           @default("AED")
   isUrgent         Boolean          @default(false)
   internalNotes    String?
   orderDate        DateTime
@@ -327,7 +327,7 @@ model Invoice {
   status         InvoiceStatus
   issueDate      DateTime
   dueDate        DateTime
-  currency       String          @default("PKR")
+  currency       String          @default("AED")
   exchangeRate   Float           @default(1)
   subtotal       Float
   taxRate        Float           @default(0)
@@ -434,7 +434,7 @@ model Payment {
   recordedById    String        @db.ObjectId
   recordedBy      User          @relation("RecordedByUser", fields: [recordedById], references: [id], onDelete: Restrict)
   amount          Float
-  currency        String        @default("PKR")
+  currency        String        @default("AED")
   exchangeRate    Float         @default(1)
   paymentDate     DateTime
   method         PaymentMethod
