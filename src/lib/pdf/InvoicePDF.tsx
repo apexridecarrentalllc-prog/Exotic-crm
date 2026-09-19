@@ -12,7 +12,6 @@ const GREEN = "#3F730A";
 const WHITE = "#FFFFFF";
 const MUTED = "#4B6B38";
 const LINE = "#C5D9B4";
-const INK = "#1F3A0D";
 
 const styles = StyleSheet.create({
   page: {

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -101,7 +102,7 @@ export function CompanyProfileTab({ getSetting, updateSettings, isUpdating }: Pr
               <div className="flex items-center gap-4">
                 <div className="w-24 h-24 rounded border bg-muted flex items-center justify-center overflow-hidden">
                   {logoUrl ? (
-                    <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" />
+                    <Image src={logoUrl} alt="Logo" width={96} height={96} className="w-full h-full object-contain" />
                   ) : (
                     <span className="text-xs text-muted-foreground">No logo</span>
                   )}
