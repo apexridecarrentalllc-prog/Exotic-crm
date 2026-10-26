@@ -374,6 +374,16 @@ model CreditNoteSequence {
   @@map("credit_note_sequences")
 }
 
+model AdvanceSequence {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  year       Int
+  lastNumber Int      @default(0)
+  updatedAt  DateTime @updatedAt
+
+  @@unique([year])
+  @@map("advance_sequences")
+}
+
 model InvoiceLineItem {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   invoiceId   String   @db.ObjectId
@@ -425,8 +435,8 @@ model CreditNote {
 
 model Payment {
   id              String        @id @default(auto()) @map("_id") @db.ObjectId
-  invoiceId       String        @db.ObjectId
-  invoice         Invoice       @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  invoiceId       String?       @db.ObjectId
+  invoice         Invoice?      @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
   companyId       String        @db.ObjectId
   company         Company       @relation(fields: [companyId], references: [id], onDelete: Restrict)
   shipmentId      String?       @db.ObjectId

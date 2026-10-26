@@ -17,7 +17,7 @@ export interface PaymentHistoryProps {
   className?: string;
 }
 
-export function PaymentHistory({ payments, currency = "PKR", className = "" }: PaymentHistoryProps) {
+export function PaymentHistory({ payments, currency = "AED", className = "" }: PaymentHistoryProps) {
   if (payments.length === 0) {
     return <p className="text-sm text-muted-foreground py-4 text-center">No payments yet.</p>;
   }

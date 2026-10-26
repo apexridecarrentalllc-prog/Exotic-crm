@@ -67,8 +67,8 @@ export function InvoicePreview({
               <tr className="bg-[#3F730A] text-white">
                 <th className="text-left py-2 px-2 font-medium">Description</th>
                 <th className="text-right py-2 px-2 w-16">Qty</th>
-                <th className="text-right py-2 px-2 w-24">Rate</th>
-                <th className="text-right py-2 px-2 w-24">Amount</th>
+                <th className="text-right py-2 px-2 w-28">Rate (AED)</th>
+                <th className="text-right py-2 px-2 w-32">Amount (AED)</th>
               </tr>
             </thead>
             <tbody>
@@ -86,10 +86,10 @@ export function InvoicePreview({
           </table>
         </div>
 
-        <div className="ml-auto w-48">
+        <div className="ml-auto w-56">
           <div className="flex justify-between bg-[#3F730A] text-white font-semibold px-3 py-2">
             <span>Total</span>
-            <span>{formatAmount(totalAmount)}</span>
+            <span>AED {formatAmount(totalAmount)}</span>
           </div>
         </div>
       </div>

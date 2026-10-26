@@ -109,7 +109,7 @@ export async function exportShipmentsToExcel(
       s.containerNumber ?? "",
       s.awbNumber ?? "",
       s.cargoValue ?? "",
-      s.currency ?? "AED",
+      "AED",
       formatDate(s.orderDate),
       formatDate(s.expectedDelivery),
       formatDate(s.actualDelivery),

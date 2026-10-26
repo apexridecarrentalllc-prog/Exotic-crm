@@ -158,7 +158,7 @@ export function StatementPDF({ statement }: { statement: StatementPDFData }) {
   const formatDate = (d: string) =>
     new Date(d).toLocaleDateString(undefined, { dateStyle: "short" });
   const formatMoney = (n: number) =>
-    (statement.currency ?? "PKR") + " " + n.toLocaleString("en-US", { minimumFractionDigits: 2 });
+    "AED" + " " + n.toLocaleString("en-US", { minimumFractionDigits: 2 });
 
   const periodText =
     statement.fromDate && statement.toDate

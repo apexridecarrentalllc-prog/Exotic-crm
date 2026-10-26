@@ -39,6 +39,7 @@ import {
   Inbox,
 } from "lucide-react";
 import { useCallback, useState } from "react";
+import { DEFAULT_CURRENCY } from "@/lib/constants";
 
 type CompanyDetail = {
   id: string;
@@ -352,7 +353,7 @@ function CompanyDetailContent() {
             totalInvoiced={company.financialSummary.totalInvoiced}
             totalPaid={company.financialSummary.totalPaid}
             outstanding={company.financialSummary.outstanding}
-            currency={company.currency}
+            currency={DEFAULT_CURRENCY}
           />
           <Card>
             <CardHeader>
@@ -380,9 +381,9 @@ function CompanyDetailContent() {
                         <TableCell>{new Date(inv.issueDate ?? inv.dueDate).toLocaleDateString()}</TableCell>
                         <TableCell>Invoice</TableCell>
                         <TableCell>{inv.invoiceNumber}</TableCell>
-                        <TableCell className="text-right">{company.currency} {inv.totalAmount.toLocaleString()}</TableCell>
+                        <TableCell className="text-right">{DEFAULT_CURRENCY} {inv.totalAmount.toLocaleString()}</TableCell>
                         <TableCell className="text-right">—</TableCell>
-                        <TableCell className="text-right">{company.currency} {inv.balanceAmount.toLocaleString()}</TableCell>
+                        <TableCell className="text-right">{DEFAULT_CURRENCY} {inv.balanceAmount.toLocaleString()}</TableCell>
                       </TableRow>
                     ))}
                     {(!company.recentInvoices || company.recentInvoices.length === 0) && (
@@ -479,8 +480,8 @@ function CompanyDetailContent() {
                         </TableCell>
                         <TableCell><Badge variant="outline">{inv.status}</Badge></TableCell>
                         <TableCell>{new Date(inv.issueDate).toLocaleDateString()}</TableCell>
-                        <TableCell className="text-right">{company.currency} {inv.totalAmount.toLocaleString()}</TableCell>
-                        <TableCell className="text-right">{company.currency} {inv.balanceAmount.toLocaleString()}</TableCell>
+                        <TableCell className="text-right">{DEFAULT_CURRENCY} {inv.totalAmount.toLocaleString()}</TableCell>
+                        <TableCell className="text-right">{DEFAULT_CURRENCY} {inv.balanceAmount.toLocaleString()}</TableCell>
                         <TableCell>
                           {inv.balanceAmount > 0 && (
                             <Link href={`/invoices/${inv.id}`}>
@@ -509,7 +510,7 @@ function CompanyDetailContent() {
           <CompanyLedger
             companyId={id}
             companyName={company.name}
-            currency={company.currency}
+            currency={DEFAULT_CURRENCY}
             entries={ledgerEntries}
             closingBalance={ledgerData?.closingBalance ?? 0}
             fromDate={ledgerData?.fromDate ?? null}

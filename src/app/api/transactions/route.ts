@@ -9,7 +9,7 @@ const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 500;
 
-export type TransactionType = "INVOICE" | "PAYMENT" | "CREDIT_NOTE";
+export type TransactionType = "INVOICE" | "PAYMENT" | "ADVANCE" | "CREDIT_NOTE";
 
 export interface TransactionRow {
   id: string;
@@ -32,6 +32,8 @@ async function getHandler(request: NextRequest) {
     const companyId = searchParams.get("companyId") || undefined;
     const shipmentId = searchParams.get("shipmentId") || undefined;
     const typeParam = searchParams.get("type") as TransactionType | undefined;
+    // Advances are payments, so a PAYMENT or ADVANCE filter both select the payment rows.
+    const filterType = typeParam === "ADVANCE" ? "PAYMENT" : typeParam;
     const startDateParam = searchParams.get("startDate");
     const endDateParam = searchParams.get("endDate");
     const page = Math.max(1, parseInt(searchParams.get("page") ?? String(DEFAULT_PAGE), 10));
@@ -67,7 +69,7 @@ async function getHandler(request: NextRequest) {
     }
 
     const [invoices, payments, creditNotes] = await Promise.all([
-      typeParam !== "PAYMENT" && typeParam !== "CREDIT_NOTE"
+      filterType !== "PAYMENT" && filterType !== "CREDIT_NOTE"
         ? prisma.invoice.findMany({
             where: invoiceWhere,
             orderBy: { issueDate: "asc" },
@@ -77,7 +79,7 @@ async function getHandler(request: NextRequest) {
             },
           })
         : [],
-      typeParam !== "INVOICE" && typeParam !== "CREDIT_NOTE"
+      filterType !== "INVOICE" && filterType !== "CREDIT_NOTE"
         ? prisma.payment.findMany({
             where: paymentWhere,
             orderBy: { paymentDate: "asc" },
@@ -88,7 +90,7 @@ async function getHandler(request: NextRequest) {
             },
           })
         : [],
-      typeParam !== "INVOICE" && typeParam !== "PAYMENT"
+      filterType !== "INVOICE" && filterType !== "PAYMENT"
         ? prisma.creditNote.findMany({
             where: {
               ...(companyId && { companyId }),
@@ -149,16 +151,20 @@ async function getHandler(request: NextRequest) {
       paymentDate: Date;
       amount: unknown;
       referenceNumber: string | null;
+      isAdvance: boolean;
+      notes: string | null;
       company: { id: string; name: string };
       shipment: { id: string; referenceNumber: string } | null;
       invoice: { invoiceNumber: string } | null;
     }>) {
       raw.push({
         date: pay.paymentDate,
-        type: "PAYMENT",
+        type: pay.isAdvance ? "ADVANCE" : "PAYMENT",
         id: pay.id,
         ref: pay.referenceNumber ?? pay.id.slice(-6),
-        desc: `Payment${pay.invoice ? ` - ${pay.invoice.invoiceNumber}` : ""}`,
+        desc: pay.isAdvance
+          ? `Advance payment${pay.notes ? ` - ${pay.notes}` : ""}`
+          : `Payment${pay.invoice ? ` - ${pay.invoice.invoiceNumber}` : ""}`,
         companyId: pay.company.id,
         companyName: pay.company.name,
         shipmentId: pay.shipment?.id ?? null,

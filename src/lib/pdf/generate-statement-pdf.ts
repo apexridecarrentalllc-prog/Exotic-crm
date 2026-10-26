@@ -139,7 +139,7 @@ export async function generateStatementPdfBuffer(
     openingBalance,
     entries,
     closingBalance,
-    currency: company.currency ?? "PKR",
+    currency: "AED",
     generatedAt: new Date().toISOString(),
   };
 

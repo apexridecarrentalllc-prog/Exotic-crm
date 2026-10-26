@@ -20,6 +20,24 @@ export async function generateInvoiceNumber(): Promise<string> {
   return `INV-${year}-${String(seq).padStart(4, "0")}`;
 }
 
+/**
+ * Generates a collision-safe advance payment number (e.g. ADV-2025-0001).
+ */
+export async function generateAdvanceNumber(): Promise<string> {
+  const year = new Date().getFullYear();
+
+  const seq = await prisma.$transaction(async (tx) => {
+    const row = await tx.advanceSequence.upsert({
+      where: { year },
+      create: { year, lastNumber: 1 },
+      update: { lastNumber: { increment: 1 } },
+    });
+    return row.lastNumber;
+  });
+
+  return `ADV-${year}-${String(seq).padStart(4, "0")}`;
+}
+
 type TxClient = { invoiceSequence: typeof prisma.invoiceSequence };
 
 /**

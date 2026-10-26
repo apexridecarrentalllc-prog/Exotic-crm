@@ -40,7 +40,7 @@ export interface CompanyBillingReportProps {
 
 type SortKey = "companyName" | "totalInvoiced" | "totalPaid" | "outstanding" | "invoiceCount" | "avgPaymentDays";
 
-export function CompanyBillingReport({ data, currency = "PKR", loading }: CompanyBillingReportProps) {
+export function CompanyBillingReport({ data, currency = "AED", loading }: CompanyBillingReportProps) {
   const [sortKey, setSortKey] = useState<SortKey>("totalInvoiced");
   const [sortAsc, setSortAsc] = useState(false);
 

@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -10,11 +11,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { LedgerTable } from "@/components/transactions/LedgerTable";
 import { AgingReport } from "@/components/transactions/AgingReport";
 import { AgingChart } from "@/components/transactions/AgingChart";
-import { AdvancePayments } from "@/components/transactions/AdvancePayments";
+import { AdvancePayments, type AdvancePaymentRow } from "@/components/transactions/AdvancePayments";
+import { AdvancePaymentDialog, type AdvancePaymentSubmit } from "@/components/transactions/AdvancePaymentDialog";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { useAuth } from "@/hooks/useAuth";
 import { StatementGenerator } from "@/components/transactions/StatementGenerator";
 import { formatCurrency } from "@/lib/invoice-constants";
 import { DownloadExportButton } from "@/components/shared/DownloadExportButton";
-import { Plus } from "lucide-react";
 
 async function fetchTransactions(params: {
   companyId?: string;
@@ -62,7 +65,26 @@ async function fetchCompanyDetail(id: string) {
   return res.json();
 }
 
+async function sendJson<T>(url: string, method: string, body: unknown, fallback: string): Promise<T> {
+  const res = await fetch(url, {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}));
+    throw new Error(e.message || fallback);
+  }
+  return res.json();
+}
+
 export default function TransactionsPage() {
+  const queryClient = useQueryClient();
+  const { hasRole } = useAuth();
+  // "create" opens the blank form; a row opens the edit form for that advance.
+  const [advanceDialog, setAdvanceDialog] = React.useState<"create" | AdvancePaymentRow | null>(null);
+  const [advanceToDelete, setAdvanceToDelete] = React.useState<AdvancePaymentRow | null>(null);
+  const editingAdvance = advanceDialog && advanceDialog !== "create" ? advanceDialog : null;
   const [activeTab, setActiveTab] = React.useState("ledger");
   const [startDate, setStartDate] = React.useState("");
   const [endDate, setEndDate] = React.useState("");
@@ -131,6 +153,42 @@ export default function TransactionsPage() {
   }, [companyLedgerId, startDate, endDate]);
 
   const companies = companiesData?.data ?? [];
+
+  const refreshAdvances = () => {
+    queryClient.invalidateQueries({ queryKey: ["transactions-advance"] });
+    queryClient.invalidateQueries({ queryKey: ["transactions"] });
+    queryClient.invalidateQueries({ queryKey: ["company-detail"] });
+  };
+
+  const advanceMutation = useMutation({
+    mutationFn: async (data: AdvancePaymentSubmit) => {
+      const body = {
+        companyId: data.companyId,
+        amount: data.amount,
+        paymentDate: data.paymentDate,
+        notes: data.notes,
+      };
+      return editingAdvance
+        ? sendJson(`/api/transactions/advance/${editingAdvance.id}`, "PUT", body, "Failed to update advance payment")
+        : sendJson("/api/transactions/advance", "POST", body, "Failed to record advance payment");
+    },
+    onSuccess: () => {
+      refreshAdvances();
+      toast.success(editingAdvance ? "Advance payment updated" : "Advance payment recorded");
+      setAdvanceDialog(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deleteAdvanceMutation = useMutation({
+    mutationFn: (id: string) =>
+      sendJson(`/api/transactions/advance/${id}`, "DELETE", undefined, "Failed to delete advance payment"),
+    onSuccess: () => {
+      refreshAdvances();
+      toast.success("Advance payment deleted");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   return (
     <div className="space-y-6">
@@ -294,12 +352,45 @@ export default function TransactionsPage() {
         </TabsContent>
 
         <TabsContent value="advance" className="space-y-4">
-          <div className="flex justify-end">
-            <Button variant="outline" size="sm" disabled>
-              <Plus className="h-4 w-4 mr-2" /> Record Advance Payment
-            </Button>
-          </div>
-          <AdvancePayments payments={advanceData ?? []} loading={advanceLoading} />
+          <AdvancePayments
+            payments={advanceData ?? []}
+            loading={advanceLoading}
+            onRecordAdvance={() => setAdvanceDialog("create")}
+            onEdit={(row) => setAdvanceDialog(row)}
+            onDelete={hasRole("ADMIN") ? (row) => setAdvanceToDelete(row) : undefined}
+          />
+          <AdvancePaymentDialog
+            open={advanceDialog !== null}
+            onOpenChange={(open) => !open && setAdvanceDialog(null)}
+            companies={companies}
+            initial={
+              editingAdvance
+                ? {
+                    companyId: editingAdvance.companyId,
+                    companyName: editingAdvance.companyName,
+                    amount: editingAdvance.amount,
+                    paymentDate: editingAdvance.paymentDate,
+                    notes: editingAdvance.notes,
+                  }
+                : null
+            }
+            onSubmit={(data) => advanceMutation.mutate(data)}
+            isLoading={advanceMutation.isPending}
+          />
+          <ConfirmDialog
+            open={advanceToDelete !== null}
+            onOpenChange={(open) => !open && setAdvanceToDelete(null)}
+            title="Delete advance payment?"
+            description={
+              advanceToDelete
+                ? `${advanceToDelete.referenceNumber ?? "This advance"} for ${advanceToDelete.companyName} (${formatCurrency(advanceToDelete.amount, "AED")}) will be removed from the ledger. This cannot be undone.`
+                : undefined
+            }
+            confirmLabel="Delete"
+            onConfirm={async () => {
+              if (advanceToDelete) await deleteAdvanceMutation.mutateAsync(advanceToDelete.id).catch(() => undefined);
+            }}
+          />
         </TabsContent>
       </Tabs>
     </div>

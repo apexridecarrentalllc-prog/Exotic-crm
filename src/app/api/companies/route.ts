@@ -21,7 +21,7 @@ async function getHandler(request: NextRequest) {
         ? undefined
         : isActiveParam === "true";
     const page = Math.max(1, parseInt(searchParams.get("page") ?? String(DEFAULT_PAGE), 10));
-    const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") ?? String(DEFAULT_LIMIT), 10)));
+    const limit = Math.min(200, Math.max(1, parseInt(searchParams.get("limit") ?? String(DEFAULT_LIMIT), 10)));
     const sortBy = SORT_FIELDS.includes(searchParams.get("sortBy") as (typeof SORT_FIELDS)[number])
       ? (searchParams.get("sortBy") as (typeof SORT_FIELDS)[number])
       : "createdAt";

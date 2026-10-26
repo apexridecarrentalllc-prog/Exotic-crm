@@ -34,7 +34,7 @@ export interface LedgerTableProps {
 export function LedgerTable({
   rows,
   summary,
-  currency = "PKR",
+  currency = "AED",
   loading,
   emptyMessage = "No transactions",
 }: LedgerTableProps) {

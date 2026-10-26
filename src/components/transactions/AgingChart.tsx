@@ -33,7 +33,7 @@ export interface AgingChartProps {
   currency?: string;
 }
 
-export function AgingChart({ companies, currency = "PKR" }: AgingChartProps) {
+export function AgingChart({ companies, currency = "AED" }: AgingChartProps) {
   const data = companies.slice(0, 15).map((c) => ({
     name: c.companyName.length > 18 ? c.companyName.slice(0, 18) + "…" : c.companyName,
     "0-30 days": c.current,
