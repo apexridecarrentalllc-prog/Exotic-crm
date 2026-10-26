@@ -87,7 +87,7 @@ export async function sendInvoiceEmail(params: {
     shipmentRef: invoice.shipment?.referenceNumber ?? "—",
     dueDate: invoice.dueDate instanceof Date ? invoice.dueDate.toISOString().slice(0, 10) : String(invoice.dueDate).slice(0, 10),
     totalAmount,
-    currency: invoice.currency,
+    currency: "AED",
     viewUrl,
     paymentInstructions,
   });
@@ -132,7 +132,7 @@ export async function sendPaymentReminderEmail(params: {
     companyName: company.name,
     daysOverdue,
     amountDue: totalAmount,
-    currency: invoice.currency,
+    currency: "AED",
     dueDate: dueDateStr,
     viewUrl,
     paymentMethods,

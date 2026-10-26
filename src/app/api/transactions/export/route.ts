@@ -78,9 +78,11 @@ async function getHandler(request: NextRequest) {
     for (const pay of payments) {
       raw.push({
         date: pay.paymentDate,
-        type: "PAYMENT",
+        type: pay.isAdvance ? "ADVANCE" : "PAYMENT",
         ref: pay.referenceNumber ?? pay.id.slice(-6),
-        desc: `Payment${pay.invoice ? ` - ${pay.invoice.invoiceNumber}` : ""}`,
+        desc: pay.isAdvance
+          ? `Advance payment${pay.notes ? ` - ${pay.notes}` : ""}`
+          : `Payment${pay.invoice ? ` - ${pay.invoice.invoiceNumber}` : ""}`,
         companyName: pay.company.name,
         shipmentRef: pay.shipment?.referenceNumber ?? null,
         debit: 0,

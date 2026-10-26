@@ -18,6 +18,7 @@ import {
 import { COMPANY_TYPES } from "@/lib/constants";
 import { Plus, MoreHorizontal, Eye, Pencil, FileText, Receipt, UserMinus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DEFAULT_CURRENCY } from "@/lib/constants";
 
 type CompanyRow = {
   id: string;
@@ -151,7 +152,7 @@ export default function CompaniesPage() {
             row.outstandingBalance > 0 ? "text-destructive" : "text-emerald-600 dark:text-emerald-400"
           )}
         >
-          {row.currency} {row.outstandingBalance.toLocaleString()}
+          {DEFAULT_CURRENCY} {row.outstandingBalance.toLocaleString()}
         </span>
       ),
     },
@@ -160,7 +161,7 @@ export default function CompaniesPage() {
       header: "Total Invoiced",
       cell: (row) => (
         <span className="tabular-nums">
-          {row.currency} {row.totalInvoiced.toLocaleString()}
+          {DEFAULT_CURRENCY} {row.totalInvoiced.toLocaleString()}
         </span>
       ),
     },
@@ -277,7 +278,7 @@ export default function CompaniesPage() {
         <div>
           <span className="text-sm text-muted-foreground">Total Outstanding</span>
           <p className="text-xl font-semibold tabular-nums">
-            {data?.data?.[0]?.currency ?? "AED"} {totalOutstanding.toLocaleString()}
+            {DEFAULT_CURRENCY} {totalOutstanding.toLocaleString()}
           </p>
         </div>
       </div>
@@ -343,7 +344,7 @@ export default function CompaniesPage() {
                       company.outstandingBalance > 0 ? "text-destructive" : "text-emerald-600"
                     )}
                   >
-                    {company.currency} {company.outstandingBalance.toLocaleString()}
+                    {DEFAULT_CURRENCY} {company.outstandingBalance.toLocaleString()}
                   </span>
                 </div>
               </div>

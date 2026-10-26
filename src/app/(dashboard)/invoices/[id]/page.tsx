@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PageHeader } from "@/components/shared/PageHeader";
@@ -19,10 +19,13 @@ import { PaymentHistory } from "@/components/invoices/PaymentHistory";
 import { PaymentDialog } from "@/components/invoices/PaymentDialog";
 import { CreditNoteDialog } from "@/components/invoices/CreditNoteDialog";
 import { SendInvoiceDialog } from "@/components/invoices/SendInvoiceDialog";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { useAuth } from "@/hooks/useAuth";
 import { formatAmount } from "@/lib/invoice-constants";
 import { DownloadExportButton } from "@/components/shared/DownloadExportButton";
 import {
   Pencil,
+  Trash2,
   Send,
   CreditCard,
   MoreHorizontal,
@@ -32,6 +35,7 @@ import {
   Loader2,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { DEFAULT_CURRENCY } from "@/lib/constants";
 
 type InvoiceDetail = {
   id: string;
@@ -52,6 +56,7 @@ type InvoiceDetail = {
   company: { id: string; name: string };
   shipment: { id: string; referenceNumber: string };
   lineItems: { description: string; quantity: number; unitRate: number; amount: number; taxRate: number }[];
+  creditNotes?: { id: string }[];
   payments: { id: string; amount: number; paymentDate: string; method: string; referenceNumber?: string | null; recordedBy?: { name: string | null } | null }[];
 };
 
@@ -61,8 +66,13 @@ async function fetchInvoice(id: string): Promise<InvoiceDetail> {
   return res.json();
 }
 
+const EDITABLE_STATUSES = ["DRAFT", "SENT", "PARTIALLY_PAID", "OVERDUE"];
+
 export default function InvoiceDetailPage() {
   const params = useParams();
+  const router = useRouter();
+  const { hasRole } = useAuth();
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const queryClient = useQueryClient();
   const id = params?.id as string;
   const [paymentDialogOpen, setPaymentDialogOpen] = React.useState(false);
@@ -113,6 +123,23 @@ export default function InvoiceDetailPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/invoices/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        throw new Error(e.message || "Failed to delete invoice");
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["invoices-stats"] });
+      toast.success("Invoice deleted");
+      router.push("/invoices");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const sendMutation = useMutation({
     mutationFn: async () => {
       const res = await fetch(`/api/invoices/${id}/send`, { method: "POST" });
@@ -158,7 +185,7 @@ export default function InvoiceDetailPage() {
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <InvoiceStatusBadge status={invoice.status} />
-            {invoice.status === "DRAFT" && (
+            {EDITABLE_STATUSES.includes(invoice.status) && hasRole("ACCOUNTS_MANAGER") && (
               <Link href={`/invoices/${id}/edit`}>
                 <Button variant="outline" size="sm"><Pencil className="h-4 w-4 mr-1" /> Edit</Button>
               </Link>
@@ -191,6 +218,14 @@ export default function InvoiceDetailPage() {
                     <X className="h-4 w-4 mr-2" /> Cancel
                   </Link>
                 </DropdownMenuItem>
+                {hasRole("ADMIN") && invoice.payments.length === 0 && (invoice.creditNotes?.length ?? 0) === 0 && (
+                  <DropdownMenuItem
+                    onSelect={() => setDeleteDialogOpen(true)}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" /> Delete
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -224,10 +259,10 @@ export default function InvoiceDetailPage() {
                 />
               </div>
               <p className="text-sm text-muted-foreground">
-                {formatAmount(invoice.paidAmount)} of {formatAmount(invoice.totalAmount)} paid
+                AED {formatAmount(invoice.paidAmount)} of AED {formatAmount(invoice.totalAmount)} paid
               </p>
               <p className={invoice.balanceAmount > 0 ? "text-lg font-semibold text-destructive" : "text-lg font-semibold text-emerald-600"}>
-                Balance: {formatAmount(invoice.balanceAmount)}
+                Balance: AED {formatAmount(invoice.balanceAmount)}
               </p>
               {invoice.balanceAmount > 0 && (
                 <Button className="w-full" size="sm" onClick={() => setPaymentDialogOpen(true)}>
@@ -242,7 +277,7 @@ export default function InvoiceDetailPage() {
               <CardTitle>Payment history</CardTitle>
             </CardHeader>
             <CardContent>
-              <PaymentHistory payments={invoice.payments} currency={invoice.currency} />
+              <PaymentHistory payments={invoice.payments} currency={DEFAULT_CURRENCY} />
             </CardContent>
           </Card>
 
@@ -276,7 +311,7 @@ export default function InvoiceDetailPage() {
         open={paymentDialogOpen}
         onOpenChange={setPaymentDialogOpen}
         remainingBalance={invoice.balanceAmount}
-        currency={invoice.currency}
+        currency={DEFAULT_CURRENCY}
         onSubmit={(data) => paymentMutation.mutate(data)}
         isLoading={paymentMutation.isPending}
       />
@@ -284,9 +319,19 @@ export default function InvoiceDetailPage() {
         open={creditNoteDialogOpen}
         onOpenChange={setCreditNoteDialogOpen}
         maxAmount={invoice.balanceAmount}
-        currency={invoice.currency}
+        currency={DEFAULT_CURRENCY}
         onSubmit={(data) => creditNoteMutation.mutate(data)}
         isLoading={creditNoteMutation.isPending}
+      />
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Delete invoice?"
+        description={`${invoice.invoiceNumber} for ${invoice.company.name} will be permanently deleted. Its number will not be reused. This cannot be undone.`}
+        confirmLabel="Delete"
+        onConfirm={async () => {
+          await deleteMutation.mutateAsync().catch(() => undefined);
+        }}
       />
       <SendInvoiceDialog
         open={sendDialogOpen}

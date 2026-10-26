@@ -284,6 +284,8 @@ export const createInvoiceSchema = z.object({
 export type CreateInvoiceInput = z.infer<typeof createInvoiceSchema>;
 
 export const updateInvoiceSchema = z.object({
+  companyId: z.string().min(1).optional(),
+  shipmentId: z.string().min(1).optional(),
   dueDate: z.coerce.date().optional(),
   currency: z.string().max(10).optional(),
   taxRate: z.number().min(0).max(100).optional(),
@@ -307,6 +309,14 @@ export const recordPaymentSchema = z.object({
   notes: z.string().max(500).optional(),
 });
 export type RecordPaymentInput = z.infer<typeof recordPaymentSchema>;
+
+export const recordAdvancePaymentSchema = z.object({
+  companyId: z.string().min(1, "Company is required"),
+  amount: z.number().positive("Amount must be positive"),
+  paymentDate: z.coerce.date(),
+  notes: z.string().max(500).optional(),
+});
+export type RecordAdvancePaymentInput = z.infer<typeof recordAdvancePaymentSchema>;
 
 export const createCreditNoteSchema = z.object({
   amount: z.number().positive("Amount must be positive"),

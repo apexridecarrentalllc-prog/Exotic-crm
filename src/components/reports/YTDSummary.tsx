@@ -21,7 +21,7 @@ export interface YTDSummaryProps {
   loading?: boolean;
 }
 
-export function YTDSummary({ data, currency = "PKR", loading }: YTDSummaryProps) {
+export function YTDSummary({ data, currency = "AED", loading }: YTDSummaryProps) {
   if (loading) return <div className="rounded-md border p-8 text-center text-muted-foreground">Loading report...</div>;
   if (!data) return <p className="text-center text-muted-foreground">Select year and generate report.</p>;
 

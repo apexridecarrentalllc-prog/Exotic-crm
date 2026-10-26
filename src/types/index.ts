@@ -59,7 +59,7 @@ export type NotificationType =
 
 export type CreditNoteStatus = "DRAFT" | "ISSUED" | "APPLIED" | "CANCELLED";
 
-export type Currency = "PKR" | "USD" | "EUR" | "GBP" | "AED" | "CNY";
+export type Currency = "AED";
 
 // ============ ENTITY TYPES ============
 
@@ -179,7 +179,7 @@ export interface InvoiceLineItem {
 
 export interface Payment {
   id: string;
-  invoiceId: string;
+  invoiceId?: string | null;
   companyId: string;
   shipmentId?: string | null;
   recordedById: string;

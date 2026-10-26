@@ -20,7 +20,7 @@ export interface MonthlyRevenueReportProps {
 }
 
 export function MonthlyRevenueReport(props: MonthlyRevenueReportProps) {
-  const { data, currency = "PKR", loading } = props;
+  const { data, currency = "AED", loading } = props;
   const chartData = data.map((d) => ({
     name: d.year + "-" + (d.month < 10 ? "0" : "") + d.month,
     Invoiced: d.invoiced,

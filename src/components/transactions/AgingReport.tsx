@@ -38,7 +38,7 @@ export interface AgingReportProps {
 export function AgingReport({
   companies,
   totals,
-  currency = "PKR",
+  currency = "AED",
   loading,
 }: AgingReportProps) {
   if (loading) {

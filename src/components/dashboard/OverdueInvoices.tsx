@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/Table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { differenceInDays } from "date-fns";
+import { DEFAULT_CURRENCY } from "@/lib/constants";
 
 export interface OverdueInvoiceRow {
   id: string;
@@ -21,7 +22,7 @@ export interface OverdueInvoiceRow {
   dueDate: string;
 }
 
-const formatter = new Intl.NumberFormat("en-PK", {
+const formatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 0,
   minimumFractionDigits: 0,
 });
@@ -91,7 +92,7 @@ export function OverdueInvoices({
                     </TableCell>
                     <TableCell className="max-w-[140px] truncate">{row.companyName}</TableCell>
                     <TableCell>
-                      {formatter.format(row.balanceAmount)} {row.currency}
+                      {DEFAULT_CURRENCY} {formatter.format(row.balanceAmount)}
                     </TableCell>
                     <TableCell className="text-red-600 font-medium">
                       {daysOverdue} days

@@ -13,7 +13,7 @@ export interface DashboardStatsData {
   shipmentsThisMonth: number;
 }
 
-const formatter = new Intl.NumberFormat("en-PK", {
+const formatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 0,
   minimumFractionDigits: 0,
 });
@@ -56,19 +56,19 @@ export function DashboardStats({
       />
       <StatCard
         title="Invoiced This Month"
-        value={formatter.format(stats.totalInvoicedThisMonth)}
+        value={`AED ${formatter.format(stats.totalInvoicedThisMonth)}`}
         icon={FileText}
         color="purple"
       />
       <StatCard
         title="Collected This Month"
-        value={formatter.format(stats.totalCollectedThisMonth)}
+        value={`AED ${formatter.format(stats.totalCollectedThisMonth)}`}
         icon={CheckCircle}
         color="green"
       />
       <StatCard
         title="Outstanding"
-        value={formatter.format(stats.totalOutstanding)}
+        value={`AED ${formatter.format(stats.totalOutstanding)}`}
         icon={Clock}
         color="yellow"
       />

@@ -35,3 +35,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# currency retag backups (ids + old currency codes)
+currency-backup-*.json

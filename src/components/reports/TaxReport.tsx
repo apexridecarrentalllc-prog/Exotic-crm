@@ -23,7 +23,7 @@ export interface TaxReportProps {
 }
 
 export function TaxReport(props: TaxReportProps) {
-  const { items, totals, currency = "PKR", loading } = props;
+  const { items, totals, currency = "AED", loading } = props;
   if (loading) return <div className="rounded-md border p-8 text-center text-muted-foreground">Loading report...</div>;
 
   return (

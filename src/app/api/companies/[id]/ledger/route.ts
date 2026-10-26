@@ -110,6 +110,8 @@ async function getHandler(
           amount: true,
           referenceNumber: true,
           invoiceId: true,
+          isAdvance: true,
+          notes: true,
         },
       }),
     ]);
@@ -152,7 +154,11 @@ async function getHandler(
           type: "payment",
           id: pay.id,
           date: dateStr,
-          description: pay.referenceNumber ? `Payment - ${pay.referenceNumber}` : "Payment",
+          description: pay.isAdvance
+            ? `Advance payment${pay.notes ? ` - ${pay.notes}` : ""}`
+            : pay.referenceNumber
+              ? `Payment - ${pay.referenceNumber}`
+              : "Payment",
           reference: pay.referenceNumber ?? pay.id,
           debit: 0,
           credit: amount,

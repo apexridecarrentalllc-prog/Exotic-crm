@@ -74,7 +74,7 @@ export function invoiceEmailTemplate(data: InvoiceEmailData): string {
       </tr>
       <tr>
         <td style="border:1px solid ${BORDER};font-weight:600;">Amount Due</td>
-        <td style="border:1px solid ${BORDER};font-weight:600;">${data.totalAmount}</td>
+        <td style="border:1px solid ${BORDER};font-weight:600;">${data.currency} ${data.totalAmount}</td>
       </tr>
     </table>
     <p style="margin:0 0 12px;">
@@ -112,7 +112,7 @@ export function paymentReminderTemplate(data: PaymentReminderData): string {
       </tr>
       <tr style="background-color:#fef2f2;">
         <td style="border:1px solid ${BORDER};font-weight:600;">Amount Due</td>
-        <td style="border:1px solid ${BORDER};font-weight:600;">${data.amountDue} ${data.currency}</td>
+        <td style="border:1px solid ${BORDER};font-weight:600;">${data.currency} ${data.amountDue}</td>
       </tr>
     </table>
     <p style="margin:0 0 12px;">Please arrange payment at your earliest convenience.</p>

@@ -74,7 +74,7 @@ export function RevenueChart({
                   border: "1px solid hsl(var(--border))",
                   borderRadius: "var(--radius)",
                 }}
-                formatter={(value: unknown) => [String(Number(value ?? 0).toLocaleString()), ""]}
+                formatter={(value: unknown) => [`AED ${Number(value ?? 0).toLocaleString()}`, ""]}
                 labelFormatter={(_, payload) =>
                   (payload?.[0] as { payload?: { monthLabel?: string } })?.payload?.monthLabel ?? ""
                 }

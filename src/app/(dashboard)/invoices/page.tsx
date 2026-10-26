@@ -1,13 +1,16 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 import Link from "next/link";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { InvoiceStatusBadge } from "@/components/invoices/InvoiceStatusBadge";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { useAuth } from "@/hooks/useAuth";
 import { formatAmount } from "@/lib/invoice-constants";
 import {
   DropdownMenu,
@@ -15,7 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/Dropdown";
-import { Plus, MoreHorizontal, Eye, FileDown, Send, CreditCard, X } from "lucide-react";
+import { Plus, MoreHorizontal, Eye, FileDown, Send, CreditCard, X, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type InvoiceRow = {
@@ -86,7 +89,12 @@ async function fetchCompanies(): Promise<{ data: { id: string; name: string }[] 
   return res.json();
 }
 
+const EDITABLE_STATUSES = ["DRAFT", "SENT", "PARTIALLY_PAID", "OVERDUE"];
+
 export default function InvoicesPage() {
+  const queryClient = useQueryClient();
+  const { hasRole } = useAuth();
+  const [invoiceToDelete, setInvoiceToDelete] = useState<InvoiceRow | null>(null);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [companyId, setCompanyId] = useState("");
@@ -113,6 +121,22 @@ export default function InvoicesPage() {
 
   const { data: stats } = useQuery({ queryKey: ["invoices-stats"], queryFn: fetchStats });
   const { data: companiesData } = useQuery({ queryKey: ["companies-list"], queryFn: fetchCompanies });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (invoiceId: string) => {
+      const res = await fetch(`/api/invoices/${invoiceId}`, { method: "DELETE" });
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        throw new Error(e.message || "Failed to delete invoice");
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["invoices-stats"] });
+      toast.success("Invoice deleted");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const clearFilters = useCallback(() => {
     setSearch("");
@@ -148,7 +172,7 @@ export default function InvoicesPage() {
     },
     {
       id: "totalAmount",
-      header: "Total",
+      header: "Total (AED)",
       cell: (row) =>
         row.totalAmount != null ? (
           <span className="tabular-nums">{formatAmount(row.totalAmount)}</span>
@@ -158,7 +182,7 @@ export default function InvoicesPage() {
     },
     {
       id: "paidAmount",
-      header: "Paid",
+      header: "Paid (AED)",
       cell: (row) =>
         row.paidAmount != null ? (
           <span className="tabular-nums text-emerald-600 dark:text-emerald-400">
@@ -170,7 +194,7 @@ export default function InvoicesPage() {
     },
     {
       id: "balanceAmount",
-      header: "Balance",
+      header: "Balance (AED)",
       cell: (row) => {
         const bal = row.balanceAmount ?? 0;
         return (
@@ -211,6 +235,14 @@ export default function InvoicesPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              {EDITABLE_STATUSES.includes(row.status) && hasRole("ACCOUNTS_MANAGER") && (
+                <DropdownMenuItem asChild>
+                  <Link href={`/invoices/${row.id}/edit`}>
+                    <Pencil className="h-4 w-4 mr-2" />
+                    Edit
+                  </Link>
+                </DropdownMenuItem>
+              )}
               {row.status === "DRAFT" && (
                 <DropdownMenuItem asChild>
                   <Link href={`/invoices/${row.id}`}>
@@ -233,6 +265,15 @@ export default function InvoicesPage() {
                     <X className="h-4 w-4 mr-2" />
                     Cancel
                   </Link>
+                </DropdownMenuItem>
+              )}
+              {hasRole("ADMIN") && (row.paidAmount ?? 0) === 0 && (
+                <DropdownMenuItem
+                  onSelect={() => setInvoiceToDelete(row)}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>
@@ -277,11 +318,11 @@ export default function InvoicesPage() {
         </div>
         <div className="rounded-lg border bg-card p-4">
           <p className="text-sm text-muted-foreground">Paid This Month</p>
-          <p className="text-2xl font-semibold">{stats?.paidThisMonth != null ? formatAmount(stats.paidThisMonth) : "—"}</p>
+          <p className="text-2xl font-semibold">{stats?.paidThisMonth != null ? `AED ${formatAmount(stats.paidThisMonth)}` : "—"}</p>
         </div>
         <div className="rounded-lg border bg-card p-4">
           <p className="text-sm text-muted-foreground">Outstanding Total</p>
-          <p className="text-2xl font-semibold">{stats?.outstandingTotal != null ? formatAmount(stats.outstandingTotal) : "—"}</p>
+          <p className="text-2xl font-semibold">{stats?.outstandingTotal != null ? `AED ${formatAmount(stats.outstandingTotal)}` : "—"}</p>
         </div>
       </div>
 
@@ -342,6 +383,21 @@ export default function InvoicesPage() {
         onPageSizeChange={(s) => { setLimit(s); setPage(1); }}
         getRowId={(row) => row.id}
         emptyMessage="No invoices found"
+      />
+
+      <ConfirmDialog
+        open={invoiceToDelete !== null}
+        onOpenChange={(open) => !open && setInvoiceToDelete(null)}
+        title="Delete invoice?"
+        description={
+          invoiceToDelete
+            ? `${invoiceToDelete.invoiceNumber} for ${invoiceToDelete.companyName} will be permanently deleted. Its number will not be reused. This cannot be undone.`
+            : undefined
+        }
+        confirmLabel="Delete"
+        onConfirm={async () => {
+          if (invoiceToDelete) await deleteMutation.mutateAsync(invoiceToDelete.id).catch(() => undefined);
+        }}
       />
     </div>
   );

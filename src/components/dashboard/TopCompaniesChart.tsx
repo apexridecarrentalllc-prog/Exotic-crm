@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 
-const formatter = new Intl.NumberFormat("en-PK", {
+const formatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 0,
   minimumFractionDigits: 0,
 });
@@ -60,7 +60,7 @@ export function TopCompaniesChart({
                     {i + 1}. {row.companyName}
                   </Link>
                   <span className="text-muted-foreground shrink-0">
-                    {formatter.format(row.totalInvoiced)}
+                    AED {formatter.format(row.totalInvoiced)}
                   </span>
                 </div>
                 <div className="h-2 w-full rounded-full bg-muted overflow-hidden">

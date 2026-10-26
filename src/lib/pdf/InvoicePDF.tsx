@@ -379,8 +379,8 @@ export function InvoicePDF({ invoice }: { invoice: InvoicePDFData }) {
           <View style={styles.tableHeader}>
             <Text style={[styles.colDesc, styles.tableHeaderText]}>Description</Text>
             <Text style={[styles.colQty, styles.tableHeaderText]}>Qty</Text>
-            <Text style={[styles.colRate, styles.tableHeaderText]}>Rate</Text>
-            <Text style={[styles.colAmount, styles.tableHeaderText]}>Amount</Text>
+            <Text style={[styles.colRate, styles.tableHeaderText]}>Rate (AED)</Text>
+            <Text style={[styles.colAmount, styles.tableHeaderText]}>Amount (AED)</Text>
           </View>
           {invoice.lineItems.map((line, i) => (
             <View
@@ -399,7 +399,7 @@ export function InvoicePDF({ invoice }: { invoice: InvoicePDFData }) {
           <View style={styles.totalsBox}>
             <View style={styles.grandTotalBox}>
               <Text style={styles.grandLabel}>Total</Text>
-              <Text style={styles.grandValue}>{formatMoney(invoice.totalAmount)}</Text>
+              <Text style={styles.grandValue}>AED {formatMoney(invoice.totalAmount)}</Text>
             </View>
           </View>
         </View>
