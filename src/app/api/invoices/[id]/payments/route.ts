@@ -5,6 +5,7 @@ import { createAuditLog } from "@/lib/auth-helpers";
 import { createNotificationForRoles } from "@/lib/notifications";
 import { recordPaymentSchema } from "@/lib/validations";
 import { toNum } from "@/lib/utils";
+import { DEFAULT_CURRENCY } from "@/lib/constants";
 
 async function getHandler(
   _request: NextRequest,
@@ -111,7 +112,7 @@ async function postHandler(
         shipmentId: invoice.shipmentId,
         recordedById: userId,
         amount: parsed.data.amount,
-        currency: invoice.currency,
+        currency: DEFAULT_CURRENCY,
         paymentDate: parsed.data.paymentDate,
         method: parsed.data.method,
         referenceNumber: parsed.data.referenceNumber ?? undefined,
@@ -144,7 +145,7 @@ async function postHandler(
       data: {
         userId: invoice.createdById,
         title: "Payment received",
-        message: "Payment of " + parsed.data.amount + " " + invoice.currency + " recorded for invoice " + invoice.invoiceNumber + ".",
+        message: "Payment of " + parsed.data.amount + " " + DEFAULT_CURRENCY + " recorded for invoice " + invoice.invoiceNumber + ".",
         type: "GENERAL",
         relatedId: id,
         relatedType: "Invoice",
@@ -154,7 +155,7 @@ async function postHandler(
     await createNotificationForRoles(
       ["ACCOUNTS_MANAGER", "ADMIN"],
       "Payment recorded",
-      `Payment of ${parsed.data.amount} ${invoice.currency} recorded for invoice ${invoice.invoiceNumber}.`,
+      `Payment of ${parsed.data.amount} ${DEFAULT_CURRENCY} recorded for invoice ${invoice.invoiceNumber}.`,
       "GENERAL",
       id,
       "Invoice"
