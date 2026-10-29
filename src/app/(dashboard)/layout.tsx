@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 import { DashboardProviders } from "@/components/layout/DashboardProviders";
 
 export const metadata: Metadata = {
-  title: { template: "%s | Exotic Food Stuff", default: "Dashboard | Exotic Food Stuff" },
+  title: { template: "%s | Pistis Food Stuff", default: "Dashboard | Pistis Food Stuff" },
   description: "Food Stuff Business Management System",
 };
 

@@ -456,7 +456,7 @@ export interface InvoicePDFData {
   issuerPhone?: string | null;
 }
 
-const DEFAULT_HEADER_NAME = process.env.NEXT_PUBLIC_COMPANY_NAME ?? "EXOTIC";
+const DEFAULT_HEADER_NAME = process.env.NEXT_PUBLIC_COMPANY_NAME ?? "PISTIS";
 const DEFAULT_HEADER_LINE2 = process.env.NEXT_PUBLIC_COMPANY_TAGLINE ?? "LOGISTICS";
 
 /** Small status pill under the invoice date (replaces the old watermark that ran across the numbers). */

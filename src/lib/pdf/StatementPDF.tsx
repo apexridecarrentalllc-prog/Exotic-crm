@@ -91,12 +91,22 @@ const styles = StyleSheet.create({
   tableRowAlt: {
     backgroundColor: "#f9fafb",
   },
-  colDate: { width: "14%" },
-  colDesc: { width: "28%" },
-  colRef: { width: "18%" },
-  colDebit: { width: "13%", textAlign: "right" },
-  colCredit: { width: "13%", textAlign: "right" },
-  colBalance: { width: "14%", textAlign: "right", fontWeight: "bold" },
+  colDate: { width: "12%" },
+  colDesc: { width: "26%" },
+  colRef: { width: "16%" },
+  colDebit: { width: "15%", textAlign: "right" },
+  colCredit: { width: "15%", textAlign: "right" },
+  colBalance: { width: "16%", textAlign: "right", fontWeight: "bold" },
+  totalsRow: {
+    flexDirection: "row",
+    paddingVertical: 6,
+    paddingHorizontal: 4,
+    borderTopWidth: 1,
+    borderTopColor: "#3F730A",
+    backgroundColor: "#f3f4f6",
+    fontWeight: "bold",
+  },
+  colTotalLabel: { width: "54%", fontWeight: "bold" },
   closingBalance: {
     marginTop: 16,
     padding: 12,
@@ -145,18 +155,24 @@ export interface StatementPDFData {
     credit: number;
     balance: number;
   }>;
+  /** Sum of the Debit and Credit columns. The net balance equals closingBalance. */
+  totalDebits: number;
+  totalCredits: number;
   closingBalance: number;
+  /** Our own company name (Settings > Company Profile). Falls back to the environment, then PISTIS. */
+  issuerName?: string | null;
   currency?: string;
   generatedAt?: string;
   contactNote?: string;
 }
 
-const COMPANY_HEADER_NAME = process.env.NEXT_PUBLIC_COMPANY_NAME ?? "IE Manager";
+const DEFAULT_HEADER_NAME = process.env.NEXT_PUBLIC_COMPANY_NAME ?? "PISTIS";
 const COMPANY_HEADER_LINE2 = process.env.NEXT_PUBLIC_COMPANY_TAGLINE ?? "Import / Export Management";
 
 export function StatementPDF({ statement }: { statement: StatementPDFData }) {
   const formatDate = (d: string) =>
     new Date(d).toLocaleDateString(undefined, { dateStyle: "short" });
+  const COMPANY_HEADER_NAME = statement.issuerName?.trim() || DEFAULT_HEADER_NAME;
   const formatMoney = (n: number) =>
     "AED" + " " + n.toLocaleString("en-US", { minimumFractionDigits: 2 });
 
@@ -230,6 +246,12 @@ export function StatementPDF({ statement }: { statement: StatementPDFData }) {
               <Text style={styles.colBalance}>{formatMoney(row.balance)}</Text>
             </View>
           ))}
+          <View style={styles.totalsRow} wrap={false}>
+            <Text style={styles.colTotalLabel}>Total / Net balance</Text>
+            <Text style={styles.colDebit}>{formatMoney(statement.totalDebits)}</Text>
+            <Text style={styles.colCredit}>{formatMoney(statement.totalCredits)}</Text>
+            <Text style={styles.colBalance}>{formatMoney(statement.closingBalance)}</Text>
+          </View>
         </View>
 
         <View style={styles.closingBalance}>

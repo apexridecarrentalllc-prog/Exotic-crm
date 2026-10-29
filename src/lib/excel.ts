@@ -353,6 +353,17 @@ export async function exportTransactionsToExcel(
   for (const t of ledger) {
     wsLedger.addRow([t.Date, t.Type, t.Reference, t.Description ?? "", t.Company ?? "", t.Shipment ?? "", t.Debit, t.Credit, t.Balance]);
   }
+  if (ledger.length > 0) {
+    // Same totals as the ledger screen: sum of Debit, sum of Credit, and the net balance (debits minus credits).
+    const totalDebits = ledger.reduce((sum, t) => sum + Number(t.Debit ?? 0), 0);
+    const totalCredits = ledger.reduce((sum, t) => sum + Number(t.Credit ?? 0), 0);
+    const totals = wsLedger.addRow(["", "", "", "TOTAL / NET BALANCE", "", "", totalDebits, totalCredits, totalDebits - totalCredits]);
+    totals.font = { bold: true };
+    totals.eachCell({ includeEmpty: true }, (cell) => {
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFE8F0E0" } };
+      cell.border = { top: { style: "thin" } };
+    });
+  }
   autoSizeColumns(wsLedger);
 
   const wsSummary = wb.addWorksheet("Summary", { views: [{ state: "frozen", ySplit: 1 }] });
@@ -360,6 +371,15 @@ export async function exportTransactionsToExcel(
   applyHeaderStyle(wsSummary, wsSummary.getRow(1));
   for (const s of summary) {
     wsSummary.addRow([s.CompanyName, s.TotalInvoiced, s.TotalPaid, s.Outstanding]);
+  }
+  if (summary.length > 1) {
+    const totals = wsSummary.addRow([
+      "TOTAL",
+      summary.reduce((sum, s) => sum + Number(s.TotalInvoiced ?? 0), 0),
+      summary.reduce((sum, s) => sum + Number(s.TotalPaid ?? 0), 0),
+      summary.reduce((sum, s) => sum + Number(s.Outstanding ?? 0), 0),
+    ]);
+    totals.font = { bold: true };
   }
   autoSizeColumns(wsSummary);
 
