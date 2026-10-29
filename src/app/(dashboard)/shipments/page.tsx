@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/shared/PageHeader";
@@ -18,6 +19,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/Dropdown";
 import { ShipmentStatusBadge } from "@/components/shipments/ShipmentStatusBadge";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { useAuth } from "@/hooks/useAuth";
 import { getTypeLabel } from "@/lib/shipment-constants";
 import {
   Plus,
@@ -29,6 +32,7 @@ import {
   AlertTriangle,
   ChevronRight,
   X,
+  Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ShipmentStatus, ShipmentType } from "@prisma/client";
@@ -120,6 +124,26 @@ export default function ShipmentsPage() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const { hasRole } = useAuth();
+  const [shipmentToDelete, setShipmentToDelete] = useState<ShipmentRow | null>(null);
+
+  const deleteMutation = useMutation({
+    mutationFn: async (shipmentId: string) => {
+      const res = await fetch(`/api/shipments/${shipmentId}`, { method: "DELETE" });
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        throw new Error(e.message || "Failed to delete shipment");
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["shipments"] });
+      queryClient.invalidateQueries({ queryKey: ["shipments-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      toast.success("Shipment deleted");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: [
@@ -336,6 +360,15 @@ export default function ShipmentsPage() {
                   Close
                 </Link>
               </DropdownMenuItem>
+              {hasRole("ADMIN") && (
+                <DropdownMenuItem
+                  onSelect={() => setShipmentToDelete(row)}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -487,6 +520,21 @@ export default function ShipmentsPage() {
         getRowId={(row) => row.id}
         emptyMessage="No shipments found. Create your first shipment to get started."
         emptyAction={{ label: "Create your first shipment", onClick: () => router.push("/shipments/new") }}
+      />
+
+      <ConfirmDialog
+        open={shipmentToDelete !== null}
+        onOpenChange={(open) => !open && setShipmentToDelete(null)}
+        title="Delete shipment?"
+        description={
+          shipmentToDelete
+            ? `${shipmentToDelete.referenceNumber} will be permanently deleted, together with its stages, comments, status history and uploaded documents. Its reference number will not be reused. This cannot be undone. A shipment that has invoices or payments cannot be deleted.`
+            : undefined
+        }
+        confirmLabel="Delete"
+        onConfirm={async () => {
+          if (shipmentToDelete) await deleteMutation.mutateAsync(shipmentToDelete.id).catch(() => undefined);
+        }}
       />
     </div>
   );

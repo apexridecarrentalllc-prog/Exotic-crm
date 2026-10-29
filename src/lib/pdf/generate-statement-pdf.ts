@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { toNum } from "@/lib/utils";
+import { getSetting, SETTING_KEYS } from "@/lib/settings";
 import type { Prisma } from "@prisma/client";
 import { parseISO, isValid } from "date-fns";
 import React from "react";
@@ -118,6 +119,9 @@ export async function generateStatementPdfBuffer(
       ? entries[0].balance - entries[0].debit + entries[0].credit
       : 0;
   const closingBalance = runningBalance;
+  const totalDebits = entries.reduce((sum, e) => sum + e.debit, 0);
+  const totalCredits = entries.reduce((sum, e) => sum + e.credit, 0);
+  const issuerName = await getSetting(SETTING_KEYS.COMPANY_NAME);
   const primaryContact = company.contacts[0];
 
   const statementData: StatementPDFData = {
@@ -138,7 +142,10 @@ export async function generateStatementPdfBuffer(
     toDate: toDate?.toISOString().split("T")[0] ?? null,
     openingBalance,
     entries,
+    totalDebits,
+    totalCredits,
     closingBalance,
+    issuerName,
     currency: "AED",
     generatedAt: new Date().toISOString(),
   };

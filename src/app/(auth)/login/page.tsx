@@ -52,7 +52,7 @@ function LoginForm() {
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary text-primary-foreground">
           <Package className="h-6 w-6" />
         </div>
-        <h1 className="text-2xl font-bold">Exotic Food Stuff</h1>
+        <h1 className="text-2xl font-bold">Pistis Food Stuff</h1>
         <p className="text-muted-foreground text-sm">
           Food Stuff Business Management
         </p>

@@ -3,7 +3,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "Exotic Food Stuff",
+  title: "Pistis Food Stuff",
   description: "Food Stuff Business Management System",
 };
 

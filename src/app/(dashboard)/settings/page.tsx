@@ -13,11 +13,13 @@ import {
   Coins,
   Bell,
   Server,
+  Landmark,
   Loader2,
   AlertCircle,
 } from "lucide-react";
 import { CompanyProfileTab } from "@/components/settings/CompanyProfileTab";
 import { InvoiceSettingsTab } from "@/components/settings/InvoiceSettingsTab";
+import { BankDetailsTab } from "@/components/settings/BankDetailsTab";
 import { EmailSettingsTab } from "@/components/settings/EmailSettingsTab";
 import { CurrencyTaxTab } from "@/components/settings/CurrencyTaxTab";
 import { NotificationsTab } from "@/components/settings/NotificationsTab";
@@ -99,6 +101,9 @@ function SettingsTabs({ isSuperAdmin }: { isSuperAdmin: boolean }) {
         <TabsTrigger value="invoice" className="gap-2">
           <FileText className="h-4 w-4" /> Invoice Settings
         </TabsTrigger>
+        <TabsTrigger value="bank" className="gap-2">
+          <Landmark className="h-4 w-4" /> Bank Details
+        </TabsTrigger>
         <TabsTrigger value="email" className="gap-2">
           <Mail className="h-4 w-4" /> Email Settings
         </TabsTrigger>
@@ -121,6 +126,7 @@ function SettingsTabs({ isSuperAdmin }: { isSuperAdmin: boolean }) {
           getSetting={getSetting}
           updateSettings={updateSettings}
           isUpdating={isUpdating}
+          readOnly={!isSuperAdmin}
         />
       </TabsContent>
       <TabsContent value="invoice" className="space-y-4">
@@ -129,6 +135,15 @@ function SettingsTabs({ isSuperAdmin }: { isSuperAdmin: boolean }) {
           getSetting={getSetting}
           updateSettings={updateSettings}
           isUpdating={isUpdating}
+        />
+      </TabsContent>
+      <TabsContent value="bank" className="space-y-4">
+        <BankDetailsTab
+          settings={settings}
+          getSetting={getSetting}
+          updateSettings={updateSettings}
+          isUpdating={isUpdating}
+          readOnly={!isSuperAdmin}
         />
       </TabsContent>
       <TabsContent value="email" className="space-y-4">

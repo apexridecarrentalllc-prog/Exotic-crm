@@ -4,7 +4,10 @@ import { prisma } from "@/lib/prisma";
 import { toNum } from "@/lib/utils";
 import { createAuditLog } from "@/lib/auth-helpers";
 import { generateInvoicePdfBuffer } from "@/lib/pdf/generate-invoice-pdf";
-import { sendInvoiceEmail } from "@/lib/email";
+import { sendInvoiceEmail, describeEmailError } from "@/lib/email";
+
+/** Statuses from which the invoice email can still be sent again (without changing the status). */
+const RESENDABLE_STATUSES = ["SENT", "PARTIALLY_PAID", "OVERDUE"];
 
 async function postHandler(
   request: NextRequest,
@@ -34,9 +37,10 @@ async function postHandler(
       );
     }
 
-    if (invoice.status !== "DRAFT") {
+    const isFirstSend = invoice.status === "DRAFT";
+    if (!isFirstSend && !RESENDABLE_STATUSES.includes(invoice.status)) {
       return NextResponse.json(
-        { error: "Forbidden", message: "Only draft invoices can be sent" },
+        { error: "Forbidden", message: "Only draft or open invoices can be sent" },
         { status: 403 }
       );
     }
@@ -48,13 +52,23 @@ async function postHandler(
     }
 
     const sentAt = new Date();
-    await prisma.invoice.update({
-      where: { id },
-      data: { status: "SENT", sentAt },
-    });
+    if (isFirstSend) {
+      await prisma.invoice.update({
+        where: { id },
+        data: { status: "SENT", sentAt },
+      });
+    }
 
+    // What really happened with the email. The screens show this instead of a blind "Invoice sent".
+    let email: { attempted: boolean; sent: boolean; recipient?: string; error?: string; resend: boolean } = {
+      attempted: false,
+      sent: false,
+      resend: !isFirstSend,
+    };
     const primaryContact = invoice.company.contacts[0];
-    if (primaryContact?.email) {
+    if (!primaryContact?.email) {
+      email.error = "This company has no primary contact email address, so no email could be sent.";
+    } else {
       const recipientEmail = primaryContact.email.trim();
       try {
         const pdfBuffer = await generateInvoicePdfBuffer(id);
@@ -77,33 +91,47 @@ async function postHandler(
           viewUrl,
           log: { sentById: userId, invoiceId: id },
         });
+        email = { attempted: true, sent: true, recipient: recipientEmail, resend: !isFirstSend };
       } catch (emailErr) {
         console.warn("Send invoice email failed:", emailErr);
+        email = {
+          attempted: true,
+          sent: false,
+          recipient: recipientEmail,
+          error: describeEmailError(emailErr),
+          resend: !isFirstSend,
+        };
       }
     }
 
-    const accountsUsers = await prisma.user.findMany({
-      where: { role: { in: ["ADMIN", "ACCOUNTS_MANAGER", "SUPER_ADMIN"] } },
-      select: { id: true },
-    });
-    await prisma.notification.createMany({
-      data: accountsUsers.map((u) => ({
-        userId: u.id,
-        title: "Invoice sent",
-        message: `Invoice ${invoice.invoiceNumber} was sent to ${invoice.company.name}.`,
-        type: "GENERAL",
-        relatedId: id,
-        relatedType: "Invoice",
-      })),
-    });
+    if (isFirstSend) {
+      const accountsUsers = await prisma.user.findMany({
+        where: { role: { in: ["ADMIN", "ACCOUNTS_MANAGER", "SUPER_ADMIN"] } },
+        select: { id: true },
+      });
+      await prisma.notification.createMany({
+        data: accountsUsers.map((u) => ({
+          userId: u.id,
+          title: "Invoice sent",
+          message: email.sent
+            ? `Invoice ${invoice.invoiceNumber} was sent to ${invoice.company.name}.`
+            : `Invoice ${invoice.invoiceNumber} was marked as sent to ${invoice.company.name}, but the email was not delivered.`,
+          type: "GENERAL",
+          relatedId: id,
+          relatedType: "Invoice",
+        })),
+      });
+    }
 
     await createAuditLog(
       userId,
       "UPDATE",
       "Invoice",
       id,
-      { status: "DRAFT" },
-      { status: "SENT", sentAt },
+      { status: invoice.status },
+      isFirstSend
+        ? { status: "SENT", sentAt, emailDelivered: email.sent }
+        : { emailResent: true, emailDelivered: email.sent },
       request.headers.get("x-forwarded-for") ?? undefined,
       request.headers.get("user-agent") ?? undefined
     );
@@ -112,7 +140,7 @@ async function postHandler(
       where: { id },
       include: { company: true, shipment: true },
     });
-    return NextResponse.json(updated);
+    return NextResponse.json({ ...updated, email });
   } catch (error) {
     console.error("POST /api/invoices/[id]/send:", error);
     return NextResponse.json(

@@ -78,6 +78,16 @@ export const SETTING_KEYS = {
   INVOICE_REMINDER_DAYS: "invoice_reminder_days",
   INVOICE_TERMS: "invoice_terms",
   INVOICE_PDF_FOOTER: "invoice_pdf_footer",
+  // Our own bank details, printed in the "Payment details" box of every invoice PDF
+  BANK_ACCOUNT_HOLDER: "bank_account_holder",
+  BANK_ACCOUNT_CURRENCY: "bank_account_currency",
+  BANK_ACCOUNT_NUMBER: "bank_account_number",
+  BANK_IBAN: "bank_iban",
+  BANK_NAME: "bank_name",
+  BANK_BRANCH: "bank_branch",
+  BANK_SWIFT: "bank_swift",
+  /** "false" hides the bank box on invoice PDFs. Missing or any other value means it is shown. */
+  BANK_DETAILS_ENABLED: "bank_details_enabled",
   // Email
   SMTP_HOST: "smtp_host",
   SMTP_PORT: "smtp_port",
@@ -93,3 +103,42 @@ export const SETTING_KEYS = {
   // System
   DATA_RETENTION_MONTHS: "data_retention_months",
 } as const;
+
+/** Our own bank details, as printed on invoice PDFs. Empty fields are left out. */
+export type BankDetails = {
+  accountHolder: string;
+  currency: string;
+  accountNumber: string;
+  iban: string;
+  bankName: string;
+  branch: string;
+  swift: string;
+};
+
+/**
+ * Reads the bank details saved in Settings. Returns null when nothing has been saved,
+ * so callers can show a fallback line instead of an empty box.
+ */
+export async function getBankDetails(): Promise<BankDetails | null> {
+  const v = await getSettings([
+    SETTING_KEYS.BANK_ACCOUNT_HOLDER,
+    SETTING_KEYS.BANK_ACCOUNT_CURRENCY,
+    SETTING_KEYS.BANK_ACCOUNT_NUMBER,
+    SETTING_KEYS.BANK_IBAN,
+    SETTING_KEYS.BANK_NAME,
+    SETTING_KEYS.BANK_BRANCH,
+    SETTING_KEYS.BANK_SWIFT,
+  ]);
+  const details: BankDetails = {
+    accountHolder: (v[SETTING_KEYS.BANK_ACCOUNT_HOLDER] ?? "").trim(),
+    currency: (v[SETTING_KEYS.BANK_ACCOUNT_CURRENCY] ?? "").trim(),
+    accountNumber: (v[SETTING_KEYS.BANK_ACCOUNT_NUMBER] ?? "").trim(),
+    iban: (v[SETTING_KEYS.BANK_IBAN] ?? "").trim(),
+    bankName: (v[SETTING_KEYS.BANK_NAME] ?? "").trim(),
+    branch: (v[SETTING_KEYS.BANK_BRANCH] ?? "").trim(),
+    swift: (v[SETTING_KEYS.BANK_SWIFT] ?? "").trim(),
+  };
+  // The currency alone is only a label prefix, so it does not count as "saved details".
+  const hasAny = [details.accountHolder, details.accountNumber, details.iban, details.bankName, details.branch, details.swift].some(Boolean);
+  return hasAny ? details : null;
+}

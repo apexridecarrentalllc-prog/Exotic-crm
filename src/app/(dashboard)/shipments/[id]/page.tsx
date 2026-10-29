@@ -22,6 +22,8 @@ import { DocumentChecklist } from "@/components/shipments/DocumentChecklist";
 import { ShipmentComments } from "@/components/shipments/ShipmentComments";
 import { StatusUpdateDialog } from "@/components/shipments/StatusUpdateDialog";
 import { DuplicateShipmentDialog } from "@/components/shipments/DuplicateShipmentDialog";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { useAuth } from "@/hooks/useAuth";
 import { getTypeLabel } from "@/lib/shipment-constants";
 import {
   Pencil,
@@ -33,6 +35,7 @@ import {
   FileText,
   Upload,
   Inbox,
+  Trash2,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import type { ShipmentStatus } from "@prisma/client";
@@ -120,6 +123,8 @@ export default function ShipmentDetailPage() {
   const id = params?.id as string;
   const [statusDialogOpen, setStatusDialogOpen] = React.useState(false);
   const [duplicateDialogOpen, setDuplicateDialogOpen] = React.useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const { hasRole } = useAuth();
   const [activeTab, setActiveTab] = React.useState("overview");
 
   const { data: shipment, isLoading } = useQuery({
@@ -144,6 +149,24 @@ export default function ShipmentDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["shipment", id] });
       toast.success("Status updated");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/shipments/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        throw new Error(e.message || "Failed to delete shipment");
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["shipments"] });
+      queryClient.invalidateQueries({ queryKey: ["shipments-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      toast.success("Shipment deleted");
+      router.push("/shipments");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -287,6 +310,15 @@ export default function ShipmentDetailPage() {
                     Close Shipment
                   </Link>
                 </DropdownMenuItem>
+                {hasRole("ADMIN") && (
+                  <DropdownMenuItem
+                    onSelect={() => setDeleteDialogOpen(true)}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete shipment
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -453,6 +485,16 @@ export default function ShipmentDetailPage() {
         currentStatus={shipment.status}
         onConfirm={(status, notes) => statusMutation.mutate({ status, notes })}
         isLoading={statusMutation.isPending}
+      />
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Delete shipment?"
+        description={`${shipment.referenceNumber} will be permanently deleted, together with its stages, comments, status history and uploaded documents. Its reference number will not be reused. This cannot be undone. A shipment that has invoices or payments cannot be deleted.`}
+        confirmLabel="Delete"
+        onConfirm={async () => {
+          await deleteMutation.mutateAsync().catch(() => undefined);
+        }}
       />
       <DuplicateShipmentDialog
         open={duplicateDialogOpen}
