@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/auth-helpers";
 import { updateShipmentSchema } from "@/lib/validations";
 import { toNum } from "@/lib/utils";
+import { deleteShipmentFiles } from "@/lib/upload";
 
 async function getHandler(
   _request: NextRequest,
@@ -148,6 +149,11 @@ async function patchHandler(
   }
 }
 
+/**
+ * Deletes a shipment that was created by mistake. Refused as soon as money or invoices are attached
+ * to it (invoices, payments, credit notes). Stages, comments, status history and uploaded documents
+ * are removed with it. The shipment reference number is not reused.
+ */
 async function deleteHandler(
   request: NextRequest,
   context: { params?: Record<string, string> }
@@ -163,7 +169,18 @@ async function deleteHandler(
   try {
     const shipment = await prisma.shipment.findUnique({
       where: { id },
-      include: { invoices: { take: 1 }, payments: { take: 1 } },
+      include: {
+        _count: {
+          select: {
+            invoices: true,
+            payments: true,
+            creditNotes: true,
+            documents: true,
+            comments: true,
+            stages: true,
+          },
+        },
+      },
     });
 
     if (!shipment) {
@@ -173,13 +190,13 @@ async function deleteHandler(
       );
     }
 
-    const hasInvoices = shipment.invoices.length > 0;
-    const hasPayments = shipment.payments.length > 0;
-    if (hasInvoices || hasPayments) {
+    const { invoices, payments, creditNotes } = shipment._count;
+    if (invoices > 0 || payments > 0 || creditNotes > 0) {
       return NextResponse.json(
         {
           error: "Conflict",
-          message: "Cannot delete shipment that has invoices or payments. Cancel invoices and remove payments first, or set status to CANCELLED.",
+          message:
+            "This shipment has invoices, payments or credit notes and cannot be deleted. Delete its invoices first (possible only while nothing is paid), or set the shipment status to Cancelled instead.",
         },
         { status: 409 }
       );
@@ -191,18 +208,32 @@ async function deleteHandler(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await prisma.shipment.update({
-      where: { id },
-      data: { status: "CANCELLED" },
+    await prisma.$transaction(async (tx) => {
+      // Older document versions point at newer ones; clear those links so the whole set can be removed.
+      await tx.document.updateMany({ where: { shipmentId: id }, data: { previousVersionId: null } });
+      await tx.notification.deleteMany({ where: { relatedType: "Shipment", relatedId: id } });
+      await tx.shipment.delete({ where: { id } });
     });
+
+    // Best effort: the database record is already gone, so a file problem must not fail the request.
+    await deleteShipmentFiles(id).catch((e) => console.error("Shipment file cleanup failed:", e));
 
     await createAuditLog(
       userId,
-      "SOFT_DELETE",
+      "DELETE",
       "Shipment",
       id,
-      { status: shipment.status },
-      { status: "CANCELLED" },
+      {
+        referenceNumber: shipment.referenceNumber,
+        type: shipment.type,
+        status: shipment.status,
+        origin: shipment.origin,
+        destination: shipment.destination,
+        stages: shipment._count.stages,
+        comments: shipment._count.comments,
+        documents: shipment._count.documents,
+      },
+      undefined,
       request.headers.get("x-forwarded-for") ?? undefined,
       request.headers.get("user-agent") ?? undefined
     );
@@ -221,6 +252,7 @@ export const GET = withAuth(getHandler);
 export const PATCH = withAuth(patchHandler, {
   roles: ["SUPER_ADMIN", "ADMIN", "OPERATIONS_STAFF"],
 });
+// Same level as deleting invoices.
 export const DELETE = withAuth(deleteHandler, {
-  roles: ["SUPER_ADMIN"],
+  roles: ["SUPER_ADMIN", "ADMIN"],
 });

@@ -1,5 +1,8 @@
 /**
- * Email service using Nodemailer. Configure via SMTP_* env variables.
+ * Email service using Nodemailer.
+ * Configure with SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM (and optionally SMTP_SECURE).
+ * The EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASSWORD, EMAIL_FROM names used in render.yaml and
+ * .env.example are accepted too; the SMTP_* name wins when both are set.
  * Logs sent/failed emails to EmailLog when log options are provided.
  */
 import { prisma } from "@/lib/prisma";
@@ -14,21 +17,68 @@ import {
 
 const COMPANY_NAME = process.env.NEXT_PUBLIC_APP_NAME ?? process.env.SMTP_FROM_NAME ?? "IE Manager";
 
+/** First non-empty value among the given environment variable names. */
+function env(...names: string[]): string | undefined {
+  for (const name of names) {
+    const value = process.env[name]?.trim();
+    if (value) return value;
+  }
+  return undefined;
+}
+
+export class EmailNotConfiguredError extends Error {
+  constructor() {
+    super(
+      "Email is not set up on this server. Set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS and SMTP_FROM " +
+        "(or EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASSWORD and EMAIL_FROM)."
+    );
+    this.name = "EmailNotConfiguredError";
+  }
+}
+
+export function isEmailConfigured(): boolean {
+  return Boolean(env("SMTP_HOST", "EMAIL_HOST"));
+}
+
 export async function getTransporter() {
+  const host = env("SMTP_HOST", "EMAIL_HOST");
+  // Without a host nodemailer would silently try localhost, so say clearly that email is not set up.
+  if (!host) throw new EmailNotConfiguredError();
+  const port = Number(env("SMTP_PORT", "EMAIL_PORT") ?? 587);
+  const secureSetting = env("SMTP_SECURE", "EMAIL_SECURE");
+  const user = env("SMTP_USER", "EMAIL_USER");
+  const pass = env("SMTP_PASS", "SMTP_PASSWORD", "EMAIL_PASS", "EMAIL_PASSWORD");
   const { default: nodemailer } = await import("nodemailer");
   return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT ?? 587),
-    secure: process.env.SMTP_SECURE === "true",
-    auth:
-      process.env.SMTP_USER && process.env.SMTP_PASS
-        ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-        : undefined,
+    host,
+    port,
+    secure: secureSetting !== undefined ? secureSetting === "true" : port === 465,
+    auth: user && pass ? { user, pass } : undefined,
   });
 }
 
 export function getFrom(): string {
-  return process.env.SMTP_FROM ?? "noreply@iemanager.com";
+  return env("SMTP_FROM", "EMAIL_FROM") ?? "noreply@iemanager.com";
+}
+
+/** A short, plain-English reason for a failed email, safe to show to staff (no credentials, no stack). */
+export function describeEmailError(err: unknown): string {
+  if (err instanceof EmailNotConfiguredError) return "Email is not set up on this server.";
+  const e = err as { code?: string; message?: string } | null;
+  switch (e?.code) {
+    case "ECONNREFUSED":
+    case "ECONNECTION":
+    case "ETIMEDOUT":
+    case "ESOCKET":
+    case "ENOTFOUND":
+    case "EDNS":
+      return "Could not connect to the email server.";
+    case "EAUTH":
+      return "The email server rejected the login. Check the email username and password.";
+    case "EENVELOPE":
+      return "The email server rejected the sender or recipient address.";
+  }
+  return (e?.message ?? "Unknown error").slice(0, 160);
 }
 
 export interface EmailLogParams {
@@ -91,8 +141,8 @@ export async function sendInvoiceEmail(params: {
     viewUrl,
     paymentInstructions,
   });
-  const transporter = await getTransporter();
   try {
+    const transporter = await getTransporter();
     await transporter.sendMail({
       from: getFrom(),
       to: recipientEmail,

@@ -14,6 +14,7 @@ import { InvoiceTotals } from "@/components/invoices/InvoiceTotals";
 import { InvoicePreview } from "@/components/invoices/InvoicePreview";
 import { AlertTriangle } from "lucide-react";
 import toast from "react-hot-toast";
+import { showSendFeedback } from "@/lib/invoice-send-feedback";
 
 type ShipmentOption = {
   id: string;
@@ -130,11 +131,15 @@ export default function NewInvoicePage() {
         throw new Error(err.message || "Failed to create invoice");
       }
       const invoice = await res.json();
-      toast.success(andSend ? "Invoice created and sent" : "Invoice created as draft");
+      toast.success(andSend ? "Invoice created" : "Invoice created as draft");
       if (andSend) {
         const sendRes = await fetch(`/api/invoices/${invoice.id}/send`, { method: "POST" });
-        if (sendRes.ok) toast.success("Invoice sent");
-        else toast.error("Created but send failed");
+        if (sendRes.ok) {
+          const sent = await sendRes.json().catch(() => ({}));
+          showSendFeedback(sent?.email);
+        } else {
+          toast.error("Invoice created, but sending failed. Open it and click Send invoice to try again.");
+        }
       }
       router.push(`/invoices/${invoice.id}`);
     } catch (e) {

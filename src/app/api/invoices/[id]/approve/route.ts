@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/auth-helpers";
+import { getTransporter, getFrom } from "@/lib/email";
 
 async function postHandler(
   request: NextRequest,
@@ -58,20 +59,12 @@ async function postHandler(
     const primaryContact = invoice.company.contacts[0];
     if (primaryContact?.email) {
       try {
-        const { default: nodemailer } = await import("nodemailer");
         const baseUrl = request.headers.get("x-forwarded-host")
           ? `${request.headers.get("x-forwarded-proto") ?? "https"}://${request.headers.get("x-forwarded-host")}`
           : process.env.NEXTAUTH_URL ?? "http://localhost:3000";
-        const transporter = nodemailer.createTransport({
-          host: process.env.SMTP_HOST,
-          port: Number(process.env.SMTP_PORT ?? 587),
-          secure: process.env.SMTP_SECURE === "true",
-          auth: process.env.SMTP_USER
-            ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-            : undefined,
-        });
+        const transporter = await getTransporter();
         await transporter.sendMail({
-          from: process.env.SMTP_FROM ?? "noreply@iemanager.com",
+          from: getFrom(),
           to: primaryContact.email,
           subject: "Invoice " + invoice.invoiceNumber + " approved and sent",
           text: "Invoice " + invoice.invoiceNumber + " has been approved. Due date: " + invoice.dueDate.toISOString().slice(0, 10) + ". PDF: " + baseUrl + "/api/invoices/" + id + "/pdf",

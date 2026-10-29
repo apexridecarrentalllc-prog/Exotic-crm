@@ -35,6 +35,7 @@ import {
   Loader2,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { showSendFeedback } from "@/lib/invoice-send-feedback";
 import { DEFAULT_CURRENCY } from "@/lib/constants";
 
 type InvoiceDetail = {
@@ -143,12 +144,16 @@ export default function InvoiceDetailPage() {
   const sendMutation = useMutation({
     mutationFn: async () => {
       const res = await fetch(`/api/invoices/${id}/send`, { method: "POST" });
-      if (!res.ok) throw new Error("Failed to send invoice");
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        throw new Error(e.message || "Failed to send invoice");
+      }
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["invoice", id] });
-      toast.success("Invoice sent");
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      showSendFeedback(data?.email);
       setSendDialogOpen(false);
     },
     onError: (e: Error) => toast.error(e.message),

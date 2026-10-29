@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "fs/promises";
+import { mkdir, writeFile, unlink, rm } from "fs/promises";
 import path from "path";
 
 const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024; // 20MB
@@ -108,4 +108,32 @@ export async function saveLogoFile(file: File): Promise<string> {
   await writeFile(fullPath, buffer);
   const filePath = path.join(relativeDir, fileName).replace(/\\/g, "/");
   return "/" + filePath;
+}
+
+/**
+ * Deletes an uploaded logo file. Only files inside public/uploads/logo/ are ever touched
+ * (the name is reduced to its last segment, so a crafted path cannot reach anywhere else).
+ * A missing file is not an error.
+ */
+export async function deleteLogoFile(publicPath: string): Promise<void> {
+  if (!publicPath.startsWith("/uploads/logo/")) return;
+  const fileName = path.basename(publicPath);
+  if (!fileName || fileName.startsWith(".")) return;
+  const fullPath = path.join(process.cwd(), "public", "uploads", "logo", fileName);
+  try {
+    await unlink(fullPath);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+  }
+}
+
+/**
+ * Removes every uploaded file of one shipment (public/uploads/shipments/<id>/).
+ * The id must be a 24-character hex ObjectId, so it can never point outside that folder.
+ * A missing folder is not an error.
+ */
+export async function deleteShipmentFiles(shipmentId: string): Promise<void> {
+  if (!/^[a-f0-9]{24}$/i.test(shipmentId)) return;
+  const dir = path.join(process.cwd(), "public", "uploads", "shipments", shipmentId);
+  await rm(dir, { recursive: true, force: true });
 }

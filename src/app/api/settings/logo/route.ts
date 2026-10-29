@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/lib/auth-helpers";
-import { saveLogoFile } from "@/lib/upload";
-import { setSettings } from "@/lib/settings";
+import { saveLogoFile, deleteLogoFile } from "@/lib/upload";
+import { getSetting, setSettings } from "@/lib/settings";
 import { SETTING_KEYS } from "@/lib/settings";
 
 async function postHandler(request: NextRequest) {
@@ -32,4 +32,25 @@ async function postHandler(request: NextRequest) {
   }
 }
 
+/** Removes the uploaded logo. Invoice PDFs then fall back to the default logo file. Safe to call twice. */
+async function deleteHandler() {
+  try {
+    const session = await (await import("@/lib/auth")).auth();
+    const userId = session?.user?.id;
+
+    const current = await getSetting(SETTING_KEYS.COMPANY_LOGO);
+    await setSettings({ [SETTING_KEYS.COMPANY_LOGO]: "" }, userId);
+    if (current) await deleteLogoFile(current);
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error("DELETE /api/settings/logo:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error", message: "Failed to remove logo" },
+      { status: 500 }
+    );
+  }
+}
+
 export const POST = withAuth(postHandler, { roles: ["SUPER_ADMIN", "ADMIN"] });
+export const DELETE = withAuth(deleteHandler, { roles: ["SUPER_ADMIN", "ADMIN"] });
