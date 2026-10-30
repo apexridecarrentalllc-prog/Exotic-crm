@@ -38,6 +38,24 @@ export async function generateAdvanceNumber(): Promise<string> {
   return `ADV-${year}-${String(seq).padStart(4, "0")}`;
 }
 
+/**
+ * Generates a collision-safe expense number (e.g. EXP-2026-0001).
+ */
+export async function generateExpenseNumber(): Promise<string> {
+  const year = new Date().getFullYear();
+
+  const seq = await prisma.$transaction(async (tx) => {
+    const row = await tx.expenseSequence.upsert({
+      where: { year },
+      create: { year, lastNumber: 1 },
+      update: { lastNumber: { increment: 1 } },
+    });
+    return row.lastNumber;
+  });
+
+  return `EXP-${year}-${String(seq).padStart(4, "0")}`;
+}
+
 type TxClient = { invoiceSequence: typeof prisma.invoiceSequence };
 
 /**

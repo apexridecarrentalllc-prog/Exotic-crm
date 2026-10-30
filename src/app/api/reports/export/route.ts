@@ -28,6 +28,7 @@ async function postHandler(request: NextRequest) {
       ...(startDate && { startDate }),
       ...(endDate && { endDate }),
       ...(companyId && { companyId }),
+      ...(body.groupBy && { groupBy: String(body.groupBy) }),
     });
 
     const baseUrl = request.nextUrl?.origin ?? process.env.NEXTAUTH_URL ?? "http://localhost:3000";

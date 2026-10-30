@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
+import { escapeRegex } from "@/lib/search";
 
 const DEFAULT_LIMIT = 5;
 const MAX_LIMIT = 20;
@@ -30,10 +31,10 @@ async function getHandler(request: NextRequest) {
       prisma.shipment.findMany({
         where: {
           OR: [
-            { referenceNumber: { contains: q, mode } },
-            { containerNumber: { contains: q, mode } },
-            { awbNumber: { contains: q, mode } },
-            { goodsDescription: { contains: q, mode } },
+            { referenceNumber: { contains: escapeRegex(q), mode } },
+            { containerNumber: { contains: escapeRegex(q), mode } },
+            { awbNumber: { contains: escapeRegex(q), mode } },
+            { goodsDescription: { contains: escapeRegex(q), mode } },
           ],
         },
         take: limit,
@@ -47,7 +48,7 @@ async function getHandler(request: NextRequest) {
         },
       }),
       prisma.company.findMany({
-        where: { name: { contains: q, mode } },
+        where: { name: { contains: escapeRegex(q), mode } },
         take: limit,
         select: {
           id: true,
@@ -57,7 +58,7 @@ async function getHandler(request: NextRequest) {
         },
       }),
       prisma.invoice.findMany({
-        where: { invoiceNumber: { contains: q, mode } },
+        where: { invoiceNumber: { contains: escapeRegex(q), mode } },
         take: limit,
         select: {
           id: true,

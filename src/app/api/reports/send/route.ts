@@ -34,6 +34,7 @@ async function postHandler(request: NextRequest) {
     const params = new URLSearchParams({ reportType });
     if (startDate) params.set("startDate", startDate);
     if (endDate) params.set("endDate", endDate);
+    if (body.groupBy) params.set("groupBy", String(body.groupBy));
 
     const baseUrl = request.nextUrl?.origin ?? process.env.NEXTAUTH_URL ?? "http://localhost:3000";
     const cookie = request.headers.get("cookie") ?? "";

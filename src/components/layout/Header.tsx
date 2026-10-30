@@ -27,6 +27,7 @@ const pathToTitle: Record<string, string> = {
   "/shipments": "Shipments",
   "/invoices": "Invoices",
   "/transactions": "Transactions",
+  "/expenses": "Expenses",
   "/documents": "Documents",
   "/reports": "Reports",
   "/notifications": "Notifications",
