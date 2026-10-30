@@ -5,7 +5,7 @@ export const REPORT_TYPES = [
   "company_billing",
   "shipment_volume",
   "outstanding_aging",
-  "profit_overview",
+  "profit_loss",
   "ytd_summary",
   "tax_report",
   "import_export_breakdown",
@@ -68,14 +68,47 @@ export function buildReportWorkbook(reportType: string, data: Record<string, unk
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), "Aging");
       break;
     }
-    case "profit_overview": {
-      const rows = (data.shipments as Record<string, unknown>[] ?? []).map((s) => ({
-        "Shipment Ref": s.shipmentRef,
-        "Total Revenue": s.totalRevenue,
-        "Company Costs": s.companyCosts,
-        "Gross Margin": s.grossMargin,
+    case "profit_loss": {
+      const t = (data.totals ?? {}) as Record<string, number | null>;
+      const period = (data.period ?? {}) as { start?: string; end?: string; groupBy?: string };
+      const summaryRows = [
+        { Item: "Period", Amount: `${period.start ?? ""} to ${period.end ?? ""}` },
+        { Item: "Revenue (invoices issued, before tax)", Amount: t.revenue },
+        { Item: "Expenses", Amount: t.expenses },
+        { Item: "Net profit", Amount: t.netProfit },
+        { Item: "Profit margin %", Amount: t.marginPercent ?? "" },
+        { Item: "Cash received (payments + advance deposits)", Amount: t.cashReceived },
+        { Item: "  of which advance deposits", Amount: t.advanceReceived },
+        { Item: "Cash paid out (expenses)", Amount: t.cashPaid },
+        { Item: "Net cash", Amount: t.netCash },
+      ];
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(summaryRows), "Summary");
+      const periodRows = ((data.rows as Array<Record<string, unknown>>) ?? []).map((r) => ({
+        Period: r.label,
+        Revenue: r.revenue,
+        Expenses: r.expenses,
+        "Net Profit": r.netProfit,
+        "Cash Received": r.cashReceived,
+        "Net Cash": r.netCash,
       }));
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), "Profit Overview");
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(periodRows), "By Period");
+      const categoryRows = ((data.byCategory as Array<Record<string, unknown>>) ?? []).map((c) => ({
+        Category: c.category,
+        Amount: c.amount,
+        Entries: c.count,
+        "Share %": c.sharePercent,
+      }));
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(categoryRows), "By Category");
+      const shipmentRows: Array<Record<string, unknown>> = ((data.byShipment as Array<Record<string, unknown>>) ?? []).map((s) => ({
+        Shipment: s.shipmentRef,
+        Revenue: s.revenue,
+        Expenses: s.expenses,
+        Profit: s.profit,
+      }));
+      if (Number(data.overheadExpenses ?? 0) > 0) {
+        shipmentRows.push({ Shipment: "Overhead (no shipment)", Revenue: 0, Expenses: data.overheadExpenses, Profit: -Number(data.overheadExpenses) });
+      }
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(shipmentRows), "By Shipment");
       break;
     }
     case "ytd_summary": {
@@ -149,6 +182,10 @@ export function buildReportSummaryHtml(reportType: string, data: Record<string, 
     case "company_billing": {
       const companies = (data.companies as unknown[]) ?? [];
       return `<p><strong>Company Billing</strong>: ${companies.length} companies.</p>`;
+    }
+    case "profit_loss": {
+      const t = (data.totals ?? {}) as Record<string, number | null>;
+      return `<p><strong>Profit &amp; Loss</strong>: Revenue ${t.revenue ?? "—"}, Expenses ${t.expenses ?? "—"}, Net profit ${t.netProfit ?? "—"}.</p>`;
     }
     case "ytd_summary":
       return `<p><strong>YTD Summary</strong> for ${year}. Total Shipments: ${(data.totalShipments as number) ?? "—"}, Total Invoiced: ${(data.totalInvoiced as number) ?? "—"}.</p>`;

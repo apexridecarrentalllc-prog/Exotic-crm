@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { EXPENSE_CATEGORIES, EXPENSE_METHODS } from "@/lib/expense-categories";
 
 export const loginSchema = z.object({
   email: z.string().min(1, "Email is required").email("Invalid email address"),
@@ -317,6 +318,21 @@ export const recordAdvancePaymentSchema = z.object({
   notes: z.string().max(500).optional(),
 });
 export type RecordAdvancePaymentInput = z.infer<typeof recordAdvancePaymentSchema>;
+
+export const expenseSchema = z.object({
+  expenseDate: z.coerce.date(),
+  category: z.enum(EXPENSE_CATEGORIES),
+  amount: z.number().positive("Amount must be positive").max(1_000_000_000),
+  description: z.string().trim().min(1, "Description is required").max(500),
+  vendor: z.string().trim().max(200).optional().nullable(),
+  method: z.enum(EXPENSE_METHODS).default("CASH"),
+  shipmentId: z
+    .string()
+    .regex(/^[a-f0-9]{24}$/i, "Invalid shipment")
+    .optional()
+    .nullable(),
+});
+export type ExpenseInput = z.infer<typeof expenseSchema>;
 
 export const createCreditNoteSchema = z.object({
   amount: z.number().positive("Amount must be positive"),

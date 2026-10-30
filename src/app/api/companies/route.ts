@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/auth-helpers";
 import { companySchema } from "@/lib/validations";
 import { toNum } from "@/lib/utils";
+import { escapeRegex } from "@/lib/search";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
@@ -31,7 +32,7 @@ async function getHandler(request: NextRequest) {
 
     const where: Record<string, unknown> = {};
     if (search) {
-      where.name = { contains: search, mode: "insensitive" };
+      where.name = { contains: escapeRegex(search), mode: "insensitive" };
     }
     if (type) {
       where.type = { has: type };

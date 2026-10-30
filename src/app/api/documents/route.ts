@@ -3,6 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { withAuth } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import { parseISO, isValid, startOfDay, endOfDay } from "date-fns";
+import { escapeRegex } from "@/lib/search";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 20;
@@ -44,10 +45,10 @@ async function getHandler(request: NextRequest) {
 
     if (search) {
       where.OR = [
-        { originalName: { contains: search, mode: "insensitive" } },
-        { fileName: { contains: search, mode: "insensitive" } },
-        { notes: { contains: search, mode: "insensitive" } },
-        { shipment: { referenceNumber: { contains: search, mode: "insensitive" } } },
+        { originalName: { contains: escapeRegex(search), mode: "insensitive" } },
+        { fileName: { contains: escapeRegex(search), mode: "insensitive" } },
+        { notes: { contains: escapeRegex(search), mode: "insensitive" } },
+        { shipment: { referenceNumber: { contains: escapeRegex(search), mode: "insensitive" } } },
       ];
     }
 

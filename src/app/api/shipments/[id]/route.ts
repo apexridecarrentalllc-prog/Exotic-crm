@@ -151,7 +151,7 @@ async function patchHandler(
 
 /**
  * Deletes a shipment that was created by mistake. Refused as soon as money or invoices are attached
- * to it (invoices, payments, credit notes). Stages, comments, status history and uploaded documents
+ * to it (invoices, payments, credit notes, expenses). Stages, comments, status history and uploaded documents
  * are removed with it. The shipment reference number is not reused.
  */
 async function deleteHandler(
@@ -175,6 +175,7 @@ async function deleteHandler(
             invoices: true,
             payments: true,
             creditNotes: true,
+            expenses: true,
             documents: true,
             comments: true,
             stages: true,
@@ -190,13 +191,13 @@ async function deleteHandler(
       );
     }
 
-    const { invoices, payments, creditNotes } = shipment._count;
-    if (invoices > 0 || payments > 0 || creditNotes > 0) {
+    const { invoices, payments, creditNotes, expenses } = shipment._count;
+    if (invoices > 0 || payments > 0 || creditNotes > 0 || expenses > 0) {
       return NextResponse.json(
         {
           error: "Conflict",
           message:
-            "This shipment has invoices, payments or credit notes and cannot be deleted. Delete its invoices first (possible only while nothing is paid), or set the shipment status to Cancelled instead.",
+            "This shipment has invoices, payments, credit notes or expenses and cannot be deleted. Delete its invoices and expenses first (invoices only while nothing is paid), or set the shipment status to Cancelled instead.",
         },
         { status: 409 }
       );

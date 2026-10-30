@@ -7,6 +7,7 @@ import { createShipmentSchema } from "@/lib/validations";
 import { toNum } from "@/lib/utils";
 import { generateShipmentRef } from "@/lib/shipment-ref";
 import { parseISO, isValid } from "date-fns";
+import { escapeRegex } from "@/lib/search";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
@@ -50,11 +51,11 @@ async function getHandler(request: NextRequest) {
     const where: Prisma.ShipmentWhereInput = {};
     if (search) {
       where.OR = [
-        { referenceNumber: { contains: search, mode: "insensitive" } },
-        { containerNumber: { contains: search, mode: "insensitive" } },
-        { awbNumber: { contains: search, mode: "insensitive" } },
-        { goodsDescription: { contains: search, mode: "insensitive" } },
-        { stages: { some: { company: { name: { contains: search, mode: "insensitive" } } } } },
+        { referenceNumber: { contains: escapeRegex(search), mode: "insensitive" } },
+        { containerNumber: { contains: escapeRegex(search), mode: "insensitive" } },
+        { awbNumber: { contains: escapeRegex(search), mode: "insensitive" } },
+        { goodsDescription: { contains: escapeRegex(search), mode: "insensitive" } },
+        { stages: { some: { company: { name: { contains: escapeRegex(search), mode: "insensitive" } } } } },
       ];
     }
     if (status && SHIPMENT_STATUSES.includes(status)) where.status = status;

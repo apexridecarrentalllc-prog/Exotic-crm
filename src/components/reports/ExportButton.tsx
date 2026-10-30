@@ -9,6 +9,8 @@ export interface ExportButtonProps {
   startDate: string;
   endDate: string;
   companyId: string;
+  /** Only used by the Profit & Loss report. */
+  groupBy?: string;
   format?: "excel" | "pdf";
   disabled?: boolean;
   onExportStart?: () => void;
@@ -22,6 +24,7 @@ export function ExportButton(props: ExportButtonProps) {
     startDate,
     endDate,
     companyId,
+    groupBy,
     format = "excel",
     disabled,
     onExportStart,
@@ -40,6 +43,7 @@ export function ExportButton(props: ExportButtonProps) {
           startDate: startDate || undefined,
           endDate: endDate || undefined,
           companyId: companyId || undefined,
+          groupBy: groupBy || undefined,
           format,
         }),
       });
@@ -60,7 +64,7 @@ export function ExportButton(props: ExportButtonProps) {
       toast.error(message);
       throw e;
     }
-  }, [reportType, startDate, endDate, companyId, format, onExportStart, onExportEnd, onError]);
+  }, [reportType, startDate, endDate, companyId, groupBy, format, onExportStart, onExportEnd, onError]);
 
   return (
     <DownloadExportButton

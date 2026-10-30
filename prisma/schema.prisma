@@ -144,6 +144,7 @@ model User {
   sessions     Session[]
   invoices     Invoice[]       @relation("CreatedByUser")
   payments     Payment[]       @relation("RecordedByUser")
+  expenses     Expense[]       @relation("ExpenseRecordedBy")
   auditLogs    AuditLog[]
   notifications Notification[]
   shipmentComments ShipmentComment[]
@@ -263,6 +264,7 @@ model Shipment {
   statusHistory    ShipmentStatusHistory[]
   payments         Payment[]
   creditNotes      CreditNote[]
+  expenses         Expense[]
 
   @@index([status, type])
   @@index([createdAt])
@@ -374,6 +376,16 @@ model CreditNoteSequence {
   @@map("credit_note_sequences")
 }
 
+model ExpenseSequence {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  year       Int
+  lastNumber Int      @default(0)
+  updatedAt  DateTime @updatedAt
+
+  @@unique([year])
+  @@map("expense_sequences")
+}
+
 model AdvanceSequence {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
   year       Int
@@ -457,6 +469,32 @@ model Payment {
 
   @@index([invoiceId, paymentDate])
   @@map("payments")
+}
+
+// ============ EXPENSE ============
+
+/// Money the business spends (freight, customs, rent...). Always AED. Optionally tied to one shipment.
+/// Expenses with no shipment are company overhead.
+model Expense {
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  expenseNumber String        @unique
+  expenseDate   DateTime
+  category      String
+  amount        Float
+  currency      String        @default("AED")
+  description   String
+  vendor        String?
+  method        PaymentMethod @default(CASH)
+  shipmentId    String?       @db.ObjectId
+  shipment      Shipment?     @relation(fields: [shipmentId], references: [id], onDelete: Restrict)
+  recordedById  String        @db.ObjectId
+  recordedBy    User          @relation("ExpenseRecordedBy", fields: [recordedById], references: [id], onDelete: Restrict)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([expenseDate])
+  @@index([shipmentId])
+  @@map("expenses")
 }
 
 // ============ DOCUMENT ============

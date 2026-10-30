@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/lib/auth-helpers";
 import { prisma } from "@/lib/prisma";
 import { toNum } from "@/lib/utils";
+import { buildProfitLoss, isGroupBy, validateRange } from "@/lib/reports/profit-loss";
+import { parseDayStart, parseDayEnd } from "@/lib/expense-utils";
 import { parseISO, isValid, startOfMonth, endOfMonth, startOfYear, endOfYear, differenceInDays } from "date-fns";
 
 const REPORT_TYPES = [
@@ -9,7 +11,7 @@ const REPORT_TYPES = [
   "company_billing",
   "shipment_volume",
   "outstanding_aging",
-  "profit_overview",
+  "profit_loss",
   "ytd_summary",
   "tax_report",
   "import_export_breakdown",
@@ -55,6 +57,20 @@ async function getHandler(request: NextRequest) {
         { error: "Bad Request", message: "Valid reportType is required" },
         { status: 400 }
       );
+    }
+
+    // Profit & Loss works in whole days (so it can show weeks), not whole months like the other reports.
+    if (reportType === "profit_loss") {
+      const now = new Date();
+      const pStart = parseDayStart(startDateParam) ?? new Date(Date.UTC(now.getUTCFullYear(), 0, 1));
+      const pEnd = parseDayEnd(endDateParam) ?? new Date(Date.UTC(now.getUTCFullYear(), 11, 31, 23, 59, 59, 999));
+      const groupByParam = searchParams.get("groupBy");
+      const groupBy = isGroupBy(groupByParam) ? groupByParam : "month";
+      const rangeError = validateRange(pStart, pEnd);
+      if (rangeError) {
+        return NextResponse.json({ error: "Bad Request", message: rangeError }, { status: 400 });
+      }
+      return NextResponse.json(await buildProfitLoss({ start: pStart, end: pEnd, groupBy }));
     }
 
     const { start, end } = parseDateRange(startDateParam, endDateParam, reportType === "ytd_summary");
@@ -237,35 +253,6 @@ async function getHandler(request: NextRequest) {
           { current: 0, days31to60: 0, days61to90: 0, over90: 0, total: 0 }
         );
         return NextResponse.json({ companies, totals });
-      }
-
-      case "profit_overview": {
-        const shipments = await prisma.shipment.findMany({
-          where: shipmentWhere,
-          select: { id: true, referenceNumber: true },
-        });
-        const result: Array<{ shipmentRef: string; totalRevenue: number; companyCosts: number; grossMargin: number }> = [];
-        for (const sh of shipments) {
-          const [invSum, paySum] = await Promise.all([
-            prisma.invoice.aggregate({
-              where: { shipmentId: sh.id, status: { not: "CANCELLED" } },
-              _sum: { totalAmount: true },
-            }),
-            prisma.payment.aggregate({
-              where: { invoice: { shipmentId: sh.id } },
-              _sum: { amount: true },
-            }),
-          ]);
-          const totalRevenue = toNum(invSum._sum.totalAmount);
-          const companyCosts = toNum(paySum._sum.amount);
-          result.push({
-            shipmentRef: sh.referenceNumber,
-            totalRevenue,
-            companyCosts,
-            grossMargin: totalRevenue - companyCosts,
-          });
-        }
-        return NextResponse.json({ shipments: result });
       }
 
       case "ytd_summary": {

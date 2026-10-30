@@ -11,6 +11,7 @@ import { CompanyBillingReport } from "@/components/reports/CompanyBillingReport"
 import { ShipmentVolumeReport } from "@/components/reports/ShipmentVolumeReport";
 import { TaxReport } from "@/components/reports/TaxReport";
 import { YTDSummary } from "@/components/reports/YTDSummary";
+import { ProfitLossReport } from "@/components/reports/ProfitLossReport";
 import { AgingReport } from "@/components/transactions/AgingReport";
 import { AgingChart } from "@/components/transactions/AgingChart";
 import { formatCurrency } from "@/lib/invoice-constants";
@@ -31,7 +32,7 @@ const REPORT_OPTIONS = [
   { id: "company_billing", label: "Company Billing", icon: Building2 },
   { id: "shipment_volume", label: "Shipment Volume", icon: Package },
   { id: "outstanding_aging", label: "Outstanding & Aging", icon: Clock },
-  { id: "profit_overview", label: "Profit Overview", icon: TrendingUp },
+  { id: "profit_loss", label: "Profit & Loss", icon: TrendingUp },
   { id: "ytd_summary", label: "Year-to-Date Summary", icon: Calendar },
   { id: "tax_report", label: "Tax Report", icon: FileText },
   { id: "import_export_breakdown", label: "Import/Export Breakdown", icon: ArrowLeftRight },
@@ -71,7 +72,8 @@ export default function ReportsPage() {
   const { data: reportData, isLoading } = useQuery({
     queryKey: ["report", reportType, startForYtd, endForYtd, companyId, generateKey],
     queryFn: () => fetchReport(reportType, startForYtd, endForYtd, companyId),
-    enabled: reportType !== "",
+    // Profit & Loss loads its own data (it has its own date presets and week/month/year view).
+    enabled: reportType !== "" && reportType !== "profit_loss",
   });
 
   const handleGenerate = () => setGenerateKey((k) => k + 1);
@@ -99,6 +101,10 @@ export default function ReportsPage() {
       </aside>
       <main className="min-w-0 flex-1 space-y-6">
         <PageHeader title="Reports & Analytics" />
+        {reportType === "profit_loss" ? (
+          <ProfitLossReport />
+        ) : (
+        <>
         <div className="space-y-4">
           <ReportFilters
             startDate={startDate}
@@ -158,39 +164,6 @@ export default function ReportsPage() {
           </div>
         )}
 
-        {reportType === "profit_overview" && (
-          <div className="space-y-4">
-            {isLoading && <div className="rounded-md border p-8 text-center text-muted-foreground">Loading...</div>}
-            {!isLoading && reportData?.shipments && (
-              <div className="rounded-md border overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="p-3 text-left font-medium">Shipment</th>
-                      <th className="p-3 text-right">Total Revenue</th>
-                      <th className="p-3 text-right">Company Costs</th>
-                      <th className="p-3 text-right">Gross Margin</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(reportData.shipments as Array<{ shipmentRef: string; totalRevenue: number; companyCosts: number; grossMargin: number }>).map((row) => (
-                      <tr key={row.shipmentRef} className="border-b">
-                        <td className="p-3 font-medium">{row.shipmentRef}</td>
-                        <td className="p-3 text-right tabular-nums">{formatCurrency(row.totalRevenue)}</td>
-                        <td className="p-3 text-right tabular-nums">{formatCurrency(row.companyCosts)}</td>
-                        <td className="p-3 text-right tabular-nums">{formatCurrency(row.grossMargin)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-            {!isLoading && (!reportData?.shipments || reportData.shipments.length === 0) && (
-              <p className="text-center text-muted-foreground">No data for the selected period.</p>
-            )}
-          </div>
-        )}
-
         {reportType === "ytd_summary" && (
           <YTDSummary data={reportData ?? null} currency="AED" loading={isLoading} />
         )}
@@ -234,6 +207,8 @@ export default function ReportsPage() {
               </>
             )}
           </div>
+        )}
+        </>
         )}
       </main>
     </div>

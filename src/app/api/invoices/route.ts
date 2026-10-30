@@ -8,6 +8,7 @@ import { toNum } from "@/lib/utils";
 import { generateInvoiceNumber } from "@/lib/invoice-number";
 import { createNotificationForRole } from "@/lib/notifications";
 import { parseISO, isValid, startOfDay } from "date-fns";
+import { escapeRegex } from "@/lib/search";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
@@ -40,9 +41,9 @@ async function getHandler(request: NextRequest) {
     const where: Prisma.InvoiceWhereInput = {};
     if (search) {
       where.OR = [
-        { invoiceNumber: { contains: search, mode: "insensitive" } },
-        { company: { name: { contains: search, mode: "insensitive" } } },
-        { shipment: { referenceNumber: { contains: search, mode: "insensitive" } } },
+        { invoiceNumber: { contains: escapeRegex(search), mode: "insensitive" } },
+        { company: { name: { contains: escapeRegex(search), mode: "insensitive" } } },
+        { shipment: { referenceNumber: { contains: escapeRegex(search), mode: "insensitive" } } },
       ];
     }
     if (status) where.status = status as Prisma.EnumInvoiceStatusFilter;

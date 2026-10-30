@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import type { DashboardApiResponse } from "@/types";
 import { DashboardStats } from "@/components/dashboard/DashboardStats";
+import { NetProfitCard } from "@/components/dashboard/NetProfitCard";
 import { RevenueChart } from "@/components/dashboard/RevenueChart";
 import { ShipmentStatusChart } from "@/components/dashboard/ShipmentStatusChart";
 import { RecentShipments } from "@/components/dashboard/RecentShipments";
@@ -62,6 +63,9 @@ export default function DashboardPage() {
           stats={data?.stats ?? null}
           loading={isLoading}
         />
+        <div className="mt-4">
+          <NetProfitCard />
+        </div>
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[1fr_1fr] xl:grid-cols-[6fr_4fr]">

@@ -24,6 +24,7 @@ import { StatusUpdateDialog } from "@/components/shipments/StatusUpdateDialog";
 import { DuplicateShipmentDialog } from "@/components/shipments/DuplicateShipmentDialog";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useAuth } from "@/hooks/useAuth";
+import { ShipmentExpenses } from "@/components/expenses/ShipmentExpenses";
 import { getTypeLabel } from "@/lib/shipment-constants";
 import {
   Pencil,
@@ -340,6 +341,7 @@ export default function ShipmentDetailPage() {
           <TabsTrigger value="invoices">Invoices</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
+          {hasRole("ACCOUNTS_MANAGER") && <TabsTrigger value="expenses">Expenses & Profit</TabsTrigger>}
           <TabsTrigger value="comments">Comments & Activity</TabsTrigger>
         </TabsList>
 
@@ -468,6 +470,12 @@ export default function ShipmentDetailPage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {hasRole("ACCOUNTS_MANAGER") && (
+          <TabsContent value="expenses" className="space-y-4">
+            <ShipmentExpenses shipmentId={shipment.id} referenceNumber={shipment.referenceNumber} />
+          </TabsContent>
+        )}
 
         <TabsContent value="comments" className="space-y-4">
           <ShipmentComments
