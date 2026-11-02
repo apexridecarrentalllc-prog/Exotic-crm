@@ -6,8 +6,10 @@ import { SETTING_KEYS } from "@/lib/settings";
 async function getHandler() {
   try {
     const logoUrl = await getSetting(SETTING_KEYS.COMPANY_LOGO);
+    const storedName = (await getSetting(SETTING_KEYS.COMPANY_NAME))?.trim();
     return NextResponse.json({
       companyLogo: logoUrl ?? null,
+      companyName: storedName || process.env.NEXT_PUBLIC_COMPANY_NAME || "PISTIS",
     });
   } catch (error) {
     console.error("GET /api/settings/branding:", error);

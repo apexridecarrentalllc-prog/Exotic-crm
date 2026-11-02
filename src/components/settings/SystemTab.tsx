@@ -6,12 +6,14 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { useSettings } from "@/hooks/useSettings";
+import { useBranding } from "@/hooks/useBranding";
 import { SETTING_KEYS } from "@/lib/settings";
 import toast from "react-hot-toast";
 import { Loader2, Database, RefreshCw, Trash2 } from "lucide-react";
 
 export function SystemTab() {
   const { getSetting, updateSettings, isUpdating } = useSettings();
+  const { companyName } = useBranding();
   const [retentionMonths, setRetentionMonths] = React.useState("");
   const [overdueRunning, setOverdueRunning] = React.useState(false);
   const [clearRunning, setClearRunning] = React.useState(false);
@@ -114,7 +116,7 @@ export function SystemTab() {
           <CardTitle>System version</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">IE Manager v0.1.0</p>
+          <p className="text-sm text-muted-foreground">{companyName} v0.1.0</p>
         </CardContent>
       </Card>
 
