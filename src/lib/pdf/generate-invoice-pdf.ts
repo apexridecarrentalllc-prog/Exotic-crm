@@ -78,7 +78,10 @@ export async function generateInvoicePdfBuffer(invoiceId: string): Promise<Buffe
     issuerLogoUrl: resolveLogoPath(logoPath),
     generatedAt: new Date().toISOString(),
     shipment: invoice.shipment
-      ? { referenceNumber: invoice.shipment.referenceNumber }
+      ? {
+          referenceNumber: invoice.shipment.referenceNumber,
+          goodsDescription: invoice.shipment.goodsDescription,
+        }
       : null,
     lineItems: invoice.lineItems.map((li) => ({
       description: li.description,

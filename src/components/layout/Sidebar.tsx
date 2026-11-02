@@ -57,7 +57,7 @@ export function Sidebar({
 }) {
   const pathname = usePathname();
   const { user, hasAnyRole } = useAuth();
-  const { companyLogo } = useBranding();
+  const { companyLogo, companyName } = useBranding();
   const { data: unreadData } = useUnreadCount();
   const unreadCount = unreadData?.count ?? 0;
   const [collapsed, setCollapsedState] = useState(false);
@@ -137,21 +137,24 @@ export function Sidebar({
             ) : collapsed ? (
               <Image
                 src="/logo-icon.svg"
-                alt="IE Manager"
+                alt={companyName}
                 width={36}
                 height={36}
                 className="h-9 w-9 object-contain"
                 priority
               />
             ) : (
-              <Image
-                src="/logo.svg"
-                alt="IE Manager"
-                width={140}
-                height={36}
-                className="h-8 w-auto max-h-8 object-contain object-left"
-                priority
-              />
+              <span className="flex min-w-0 items-center gap-2">
+                <Image
+                  src="/logo-icon.svg"
+                  alt=""
+                  width={28}
+                  height={28}
+                  className="h-7 w-7 shrink-0 object-contain"
+                  priority
+                />
+                <span className="truncate text-[15px] font-bold tracking-wide text-white">{companyName}</span>
+              </span>
             )}
           </Link>
           <Button

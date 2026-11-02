@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/auth-helpers";
-import { getTransporter, getFrom } from "@/lib/email";
+import { getTransporter, getFrom, getBrandName } from "@/lib/email";
 
 async function postHandler() {
   try {
@@ -15,12 +15,13 @@ async function postHandler() {
     }
     const transporter = await getTransporter();
     const from = getFrom();
+    const brandName = await getBrandName();
     await transporter.sendMail({
       from,
       to: email,
-      subject: "IE Manager – Test Email",
-      text: `Hello ${name ?? "User"},\n\nThis is a test email from IE Manager. Email settings are working correctly.\n\n— IE Manager`,
-      html: `<p>Hello ${name ?? "User"},</p><p>This is a test email from IE Manager. Email settings are working correctly.</p><p>— IE Manager</p>`,
+      subject: `${brandName} – Test Email`,
+      text: `Hello ${name ?? "User"},\n\nThis is a test email from ${brandName}. Email settings are working correctly.\n\n— ${brandName}`,
+      html: `<p>Hello ${name ?? "User"},</p><p>This is a test email from ${brandName}. Email settings are working correctly.</p><p>— ${brandName}</p>`,
     });
     return NextResponse.json({ ok: true });
   } catch (error) {

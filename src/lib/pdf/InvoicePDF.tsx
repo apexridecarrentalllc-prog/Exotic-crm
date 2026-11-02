@@ -154,6 +154,24 @@ const styles = StyleSheet.create({
     color: GREEN,
   },
 
+  // ---- cargo information ----
+  cargoCard: {
+    marginBottom: 14,
+    paddingVertical: 8,
+    paddingHorizontal: 11,
+    backgroundColor: SOFT,
+    borderWidth: 1,
+    borderColor: LINE,
+    borderLeftWidth: 3,
+    borderLeftColor: GREEN,
+    borderRadius: 3,
+  },
+  cargoValue: {
+    fontSize: 9,
+    color: GREEN,
+    lineHeight: 1.4,
+  },
+
   // ---- charges table ----
   table: {
     marginTop: 2,
@@ -423,6 +441,7 @@ export interface InvoicePDFData {
   };
   shipment?: {
     referenceNumber: string;
+    goodsDescription?: string | null;
   } | null;
   lineItems: Array<{
     description: string;
@@ -555,6 +574,10 @@ export function InvoicePDF({ invoice }: { invoice: InvoicePDFData }) {
   // Room for "dd/mm/yyyy · NAME · Page 10 of 10" at 7.5pt (about 4.3pt per character), so it never wraps or collides.
   const stampWidth = Math.min(300, Math.max(120, Math.round((30 + companyHeaderName.length) * 4.3)));
 
+  // Cargo information is the shipment's Goods text (container, weight etc. are typed there). Empty shows a dash.
+  const ship = invoice.shipment;
+  const cargoGoods = ship?.goodsDescription?.trim() || "—";
+
   const bank = invoice.bankDetails;
   const currencyPrefix = bank?.currency ? `${bank.currency} ` : "";
   const bankRows = bank
@@ -638,6 +661,15 @@ export function InvoicePDF({ invoice }: { invoice: InvoicePDFData }) {
             </View>
           )}
         </View>
+
+        {invoice.shipment && (
+          <View wrap={false}>
+            <Text style={styles.sectionLabel}>Cargo information</Text>
+            <View style={styles.cargoCard}>
+              <Text style={styles.cargoValue}>{cargoGoods}</Text>
+            </View>
+          </View>
+        )}
 
         <Text style={styles.sectionLabel}>Charges</Text>
         <View style={styles.table}>
