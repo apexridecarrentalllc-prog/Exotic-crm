@@ -6,7 +6,10 @@
  * Logs sent/failed emails to EmailLog when log options are provided.
  */
 import { prisma } from "@/lib/prisma";
+import { getSetting, SETTING_KEYS } from "@/lib/settings";
 import {
+  DEFAULT_BRAND_NAME,
+  formatEmailAmount,
   invoiceEmailTemplate,
   paymentReminderTemplate,
   welcomeEmailTemplate,
@@ -15,7 +18,19 @@ import {
   statementEmailTemplate,
 } from "@/lib/email-templates";
 
-const COMPANY_NAME = process.env.NEXT_PUBLIC_APP_NAME ?? process.env.SMTP_FROM_NAME ?? "IE Manager";
+/**
+ * The company name shown in emails: the Company Name set in Settings (the same one the invoice PDF uses),
+ * else the NEXT_PUBLIC_COMPANY_NAME fallback. Never blocks an email if Settings cannot be read.
+ */
+export async function getBrandName(): Promise<string> {
+  try {
+    const name = (await getSetting(SETTING_KEYS.COMPANY_NAME))?.trim();
+    if (name) return name;
+  } catch (e) {
+    console.warn("Could not read company name for email:", e);
+  }
+  return DEFAULT_BRAND_NAME;
+}
 
 /** First non-empty value among the given environment variable names. */
 function env(...names: string[]): string | undefined {
@@ -128,10 +143,10 @@ export async function sendInvoiceEmail(params: {
   paymentInstructions?: string;
   log?: EmailLogParams & { invoiceId: string };
 }): Promise<void> {
-  const { invoice, pdfBuffer, recipientEmail, recipientName: _recipientName, viewUrl, paymentInstructions, log } = params;
-  void _recipientName;
-  const subject = `Invoice ${invoice.invoiceNumber} from ${COMPANY_NAME} for Shipment ${invoice.shipment?.referenceNumber ?? "N/A"}`;
-  const totalAmount = typeof invoice.totalAmount === "number" ? invoice.totalAmount.toFixed(2) : String(invoice.totalAmount);
+  const { invoice, pdfBuffer, recipientEmail, recipientName, viewUrl, paymentInstructions, log } = params;
+  const brandName = await getBrandName();
+  const subject = `Invoice ${invoice.invoiceNumber} from ${brandName} for Shipment ${invoice.shipment?.referenceNumber ?? "N/A"}`;
+  const totalAmount = formatEmailAmount(invoice.totalAmount);
   const html = invoiceEmailTemplate({
     invoiceNumber: invoice.invoiceNumber,
     shipmentRef: invoice.shipment?.referenceNumber ?? "—",
@@ -140,6 +155,8 @@ export async function sendInvoiceEmail(params: {
     currency: "AED",
     viewUrl,
     paymentInstructions,
+    recipientName,
+    brandName,
   });
   try {
     const transporter = await getTransporter();
@@ -175,7 +192,7 @@ export async function sendPaymentReminderEmail(params: {
 }): Promise<void> {
   const { invoice, company, daysOverdue, recipientEmail, viewUrl, paymentMethods, log } = params;
   const subject = `Payment Reminder: Invoice ${invoice.invoiceNumber} is ${daysOverdue} day(s) overdue`;
-  const totalAmount = typeof invoice.totalAmount === "number" ? invoice.totalAmount.toFixed(2) : String(invoice.totalAmount);
+  const totalAmount = formatEmailAmount(invoice.totalAmount);
   const dueDateStr = invoice.dueDate instanceof Date ? invoice.dueDate.toISOString().slice(0, 10) : String(invoice.dueDate).slice(0, 10);
   const html = paymentReminderTemplate({
     invoiceNumber: invoice.invoiceNumber,
@@ -186,6 +203,7 @@ export async function sendPaymentReminderEmail(params: {
     dueDate: dueDateStr,
     viewUrl,
     paymentMethods,
+    brandName: await getBrandName(),
   });
   const transporter = await getTransporter();
   try {
@@ -211,8 +229,10 @@ export async function sendWelcomeEmail(params: {
   loginUrl: string;
 }): Promise<void> {
   const { to, name, temporaryPassword, forcePasswordChange, loginUrl } = params;
-  const subject = "Welcome to IE Manager - Your Login Credentials";
+  const brandName = await getBrandName();
+  const subject = `Welcome to ${brandName} - Your Login Credentials`;
   const html = welcomeEmailTemplate({
+    brandName,
     name,
     email: to,
     temporaryPassword,
@@ -225,7 +245,7 @@ export async function sendWelcomeEmail(params: {
     to,
     subject,
     html,
-    text: `Hello ${name},\n\nYour IE Manager account has been created.\n\nEmail: ${to}\nTemporary password: ${temporaryPassword}\n\nLog in at: ${loginUrl}\n\nBest regards,\n${COMPANY_NAME}`,
+    text: `Hello ${name},\n\nYour ${brandName} account has been created.\n\nEmail: ${to}\nTemporary password: ${temporaryPassword}\n\nLog in at: ${loginUrl}\n\nBest regards,\n${brandName}`,
   });
 }
 
@@ -236,15 +256,16 @@ export async function sendPasswordResetEmail(params: {
   loginUrl: string;
 }): Promise<void> {
   const { to, name, temporaryPassword, loginUrl } = params;
-  const subject = "IE Manager - Password Reset";
-  const html = passwordResetEmailTemplate({ name, temporaryPassword, loginUrl });
+  const brandName = await getBrandName();
+  const subject = `${brandName} - Password Reset`;
+  const html = passwordResetEmailTemplate({ name, temporaryPassword, loginUrl, brandName });
   const transporter = await getTransporter();
   await transporter.sendMail({
     from: getFrom(),
     to,
     subject,
     html,
-    text: `Hello ${name},\n\nYour password has been reset. New temporary password: ${temporaryPassword}\n\nLog in at: ${loginUrl}\n\nBest regards,\n${COMPANY_NAME}`,
+    text: `Hello ${name},\n\nYour password has been reset. New temporary password: ${temporaryPassword}\n\nLog in at: ${loginUrl}\n\nBest regards,\n${brandName}`,
   });
 }
 
@@ -264,7 +285,7 @@ export async function sendMonthlyReportEmail(params: {
 }): Promise<void> {
   const { recipients, month, year, summaryHtml, reportUrl, attachments } = params;
   const subject = `Monthly Business Report - ${month} ${year}`;
-  const html = monthlyReportEmailTemplate({ month, year, summaryHtml, reportUrl });
+  const html = monthlyReportEmailTemplate({ month, year, summaryHtml, reportUrl, brandName: await getBrandName() });
   const transporter = await getTransporter();
   const to = recipients.join(", ");
   await transporter.sendMail({
@@ -294,7 +315,7 @@ export async function sendStatementEmail(params: {
 }): Promise<void> {
   const { company, pdfBuffer, recipientEmail, viewUrl, log } = params;
   const subject = `Statement of Account - ${company.name}`;
-  const html = statementEmailTemplate({ companyName: company.name, viewUrl });
+  const html = statementEmailTemplate({ companyName: company.name, viewUrl, brandName: await getBrandName() });
   const transporter = await getTransporter();
   try {
     await transporter.sendMail({

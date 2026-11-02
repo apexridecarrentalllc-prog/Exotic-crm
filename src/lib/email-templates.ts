@@ -3,7 +3,9 @@
  * All templates are mobile-responsive (max-width, fluid tables).
  */
 
-const COMPANY_NAME = process.env.NEXT_PUBLIC_APP_NAME ?? process.env.SMTP_FROM_NAME ?? "IE Manager";
+/** Used when a template is rendered without a company name (normally email.ts passes the one from Settings). */
+export const DEFAULT_BRAND_NAME =
+  process.env.NEXT_PUBLIC_COMPANY_NAME ?? process.env.NEXT_PUBLIC_APP_NAME ?? process.env.SMTP_FROM_NAME ?? "PISTIS";
 const HEADER_BG = "#3F730A";
 const HEADER_TEXT = "#FFFFFF";
 const BODY_BG = "#FFFFFF";
@@ -12,7 +14,19 @@ const MUTED = "#6b7280";
 const LINK = "#3F730A";
 const BORDER = "#e5e7eb";
 
-function wrapDocument(content: string): string {
+function escapeHtml(text: string): string {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+/** Amounts in emails read the same as on the PDF, for example 5,001.00. */
+export function formatEmailAmount(value: number | string): string {
+  const n = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(n)) return String(value);
+  return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function wrapDocument(content: string, brandName?: string): string {
+  const COMPANY_NAME = escapeHtml(brandName?.trim() || DEFAULT_BRAND_NAME);
   return `
 <!DOCTYPE html>
 <html lang="en">
@@ -50,6 +64,8 @@ function wrapDocument(content: string): string {
 }
 
 export interface InvoiceEmailData {
+  /** Company name shown in the header and sign-off. Defaults to the PISTIS fallback. */
+  brandName?: string;
   invoiceNumber: string;
   shipmentRef: string;
   dueDate: string;
@@ -57,11 +73,13 @@ export interface InvoiceEmailData {
   currency: string;
   viewUrl: string;
   paymentInstructions?: string;
+  /** Greets the client by name. Without it the greeting is "Dear Customer". */
+  recipientName?: string;
 }
 
 export function invoiceEmailTemplate(data: InvoiceEmailData): string {
   const content = `
-    <p style="margin:0 0 16px;">Dear Valued Customer,</p>
+    <p style="margin:0 0 16px;">Dear ${data.recipientName?.trim() ? escapeHtml(data.recipientName.trim()) : "Customer"},</p>
     <p style="margin:0 0 20px;">Please find your invoice attached and a summary below.</p>
     <table role="presentation" width="100%" cellpadding="8" cellspacing="0" style="border-collapse:collapse;border:1px solid ${BORDER};margin-bottom:20px;">
       <tr style="background-color:#f9fafb;">
@@ -83,10 +101,12 @@ export function invoiceEmailTemplate(data: InvoiceEmailData): string {
     ${data.paymentInstructions ? `<p style="margin:16px 0 0;padding:12px;background:#f0f9ff;border-radius:6px;font-size:14px;">${data.paymentInstructions}</p>` : ""}
     <p style="margin:24px 0 0;">Thank you for your business.</p>
   `;
-  return wrapDocument(content);
+  return wrapDocument(content, data.brandName);
 }
 
 export interface PaymentReminderData {
+  /** Company name shown in the header and sign-off. Defaults to the PISTIS fallback. */
+  brandName?: string;
   invoiceNumber: string;
   companyName: string;
   daysOverdue: number;
@@ -120,10 +140,12 @@ export function paymentReminderTemplate(data: PaymentReminderData): string {
     ${data.paymentMethods ? `<p style="margin:16px 0 0;font-size:14px;color:${MUTED};">${data.paymentMethods}</p>` : ""}
     <p style="margin:24px 0 0;">Thank you.</p>
   `;
-  return wrapDocument(content);
+  return wrapDocument(content, data.brandName);
 }
 
 export interface WelcomeEmailData {
+  /** Company name shown in the header and sign-off. Defaults to the PISTIS fallback. */
+  brandName?: string;
   name: string;
   email: string;
   temporaryPassword: string;
@@ -152,10 +174,12 @@ export function welcomeEmailTemplate(data: WelcomeEmailData): string {
     <p style="margin:16px 0 0;font-size:14px;color:${MUTED};">${tip}</p>
     <p style="margin:24px 0 0;">Welcome to the team.</p>
   `;
-  return wrapDocument(content);
+  return wrapDocument(content, data.brandName);
 }
 
 export interface PasswordResetEmailData {
+  /** Company name shown in the header and sign-off. Defaults to the PISTIS fallback. */
+  brandName?: string;
   name: string;
   temporaryPassword: string;
   loginUrl: string;
@@ -172,12 +196,14 @@ export function passwordResetEmailTemplate(data: PasswordResetEmailData): string
       </tr>
     </table>
     <p style="margin:0 0 16px;"><a href="${data.loginUrl}" style="display:inline-block;background:${HEADER_BG};color:${HEADER_TEXT};padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:600;">Log in</a></p>
-    <p style="margin:24px 0 0;">Best regards,<br/>${COMPANY_NAME}</p>
+    <p style="margin:24px 0 0;">Best regards,<br/>${escapeHtml(data.brandName?.trim() || DEFAULT_BRAND_NAME)}</p>
   `;
-  return wrapDocument(content);
+  return wrapDocument(content, data.brandName);
 }
 
 export interface MonthlyReportEmailData {
+  /** Company name shown in the header and sign-off. Defaults to the PISTIS fallback. */
+  brandName?: string;
   month: string;
   year: string;
   summaryHtml: string;
@@ -191,12 +217,14 @@ export function monthlyReportEmailTemplate(data: MonthlyReportEmailData): string
       ${data.summaryHtml}
     </div>
     <p style="margin:0 0 16px;"><a href="${data.reportUrl}" style="color:${LINK};text-decoration:underline;">View full report online</a></p>
-    <p style="margin:24px 0 0;">Best regards,<br/>${COMPANY_NAME}</p>
+    <p style="margin:24px 0 0;">Best regards,<br/>${escapeHtml(data.brandName?.trim() || DEFAULT_BRAND_NAME)}</p>
   `;
-  return wrapDocument(content);
+  return wrapDocument(content, data.brandName);
 }
 
 export interface StatementEmailData {
+  /** Company name shown in the header and sign-off. Defaults to the PISTIS fallback. */
+  brandName?: string;
   companyName: string;
   viewUrl?: string;
 }
@@ -208,5 +236,5 @@ export function statementEmailTemplate(data: StatementEmailData): string {
     ${data.viewUrl ? `<p style="margin:0 0 16px;"><a href="${data.viewUrl}" style="color:${LINK};text-decoration:underline;">View statement online</a></p>` : ""}
     <p style="margin:24px 0 0;">If you have any questions, please contact us.</p>
   `;
-  return wrapDocument(content);
+  return wrapDocument(content, data.brandName);
 }
