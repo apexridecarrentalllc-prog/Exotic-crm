@@ -236,6 +236,7 @@ export default function TransactionsPage() {
             rows={ledgerData?.data ?? []}
             summary={ledgerData?.summary ? { totalDebits: ledgerData.summary.totalInvoiced, totalCredits: ledgerData.summary.totalCollected, netBalance: ledgerData.summary.totalOutstanding } : undefined}
             loading={ledgerLoading}
+            showGoods
           />
           {ledgerData?.total > limit && (
             <div className="flex justify-center gap-2">
@@ -331,6 +332,7 @@ export default function TransactionsPage() {
                 rows={companyLedgerRows}
                 loading={ledgerLoading && !!companyLedgerId}
                 emptyMessage="No transactions for this company in the selected range."
+                showGoods
               />
             </>
           )}

@@ -18,6 +18,7 @@ export interface LedgerRow {
   description: string;
   companyName: string;
   shipmentRef: string | null;
+  goodsDescription?: string | null;
   debit: number;
   credit: number;
   runningBalance: number;
@@ -29,6 +30,8 @@ export interface LedgerTableProps {
   currency?: string;
   loading?: boolean;
   emptyMessage?: string;
+  /** Show the shipment's goods under the description (used by the Company Ledger). */
+  showGoods?: boolean;
 }
 
 export function LedgerTable({
@@ -37,6 +40,7 @@ export function LedgerTable({
   currency = "AED",
   loading,
   emptyMessage = "No transactions",
+  showGoods = false,
 }: LedgerTableProps) {
   const totalDebits = summary?.totalDebits ?? rows.reduce((s, r) => s + r.debit, 0);
   const totalCredits = summary?.totalCredits ?? rows.reduce((s, r) => s + r.credit, 0);
@@ -101,7 +105,12 @@ export function LedgerTable({
               <TableCell>{new Date(row.date).toLocaleDateString()}</TableCell>
               <TableCell>{row.type}</TableCell>
               <TableCell className="font-medium">{row.referenceNumber}</TableCell>
-              <TableCell>{row.description}</TableCell>
+              <TableCell>
+                {row.description}
+                {showGoods && row.goodsDescription ? (
+                  <span className="block text-xs text-muted-foreground">{row.goodsDescription}</span>
+                ) : null}
+              </TableCell>
               <TableCell>{row.companyName}</TableCell>
               <TableCell>{row.shipmentRef ?? "—"}</TableCell>
               <TableCell className="text-right tabular-nums">

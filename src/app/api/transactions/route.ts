@@ -21,6 +21,7 @@ export interface TransactionRow {
   companyName: string;
   shipmentId: string | null;
   shipmentRef: string | null;
+  goodsDescription: string | null;
   debit: number;
   credit: number;
   runningBalance: number;
@@ -75,7 +76,7 @@ async function getHandler(request: NextRequest) {
             orderBy: { issueDate: "asc" },
             include: {
               company: { select: { id: true, name: true } },
-              shipment: { select: { id: true, referenceNumber: true } },
+              shipment: { select: { id: true, referenceNumber: true, goodsDescription: true } },
             },
           })
         : [],
@@ -85,7 +86,7 @@ async function getHandler(request: NextRequest) {
             orderBy: { paymentDate: "asc" },
             include: {
               company: { select: { id: true, name: true } },
-              shipment: { select: { id: true, referenceNumber: true } },
+              shipment: { select: { id: true, referenceNumber: true, goodsDescription: true } },
               invoice: { select: { invoiceNumber: true } },
             },
           })
@@ -118,6 +119,7 @@ async function getHandler(request: NextRequest) {
       companyName: string;
       shipmentId: string | null;
       shipmentRef: string | null;
+      goodsDescription: string | null;
       debit: number;
       credit: number;
     };
@@ -130,7 +132,7 @@ async function getHandler(request: NextRequest) {
       issueDate: Date;
       totalAmount: unknown;
       company: { id: string; name: string };
-      shipment: { id: string; referenceNumber: string } | null;
+      shipment: { id: string; referenceNumber: string; goodsDescription: string } | null;
     }>) {
       raw.push({
         date: inv.issueDate,
@@ -142,6 +144,7 @@ async function getHandler(request: NextRequest) {
         companyName: inv.company.name,
         shipmentId: inv.shipment?.id ?? null,
         shipmentRef: inv.shipment?.referenceNumber ?? null,
+        goodsDescription: inv.shipment?.goodsDescription ?? null,
         debit: toNum(inv.totalAmount),
         credit: 0,
       });
@@ -154,7 +157,7 @@ async function getHandler(request: NextRequest) {
       isAdvance: boolean;
       notes: string | null;
       company: { id: string; name: string };
-      shipment: { id: string; referenceNumber: string } | null;
+      shipment: { id: string; referenceNumber: string; goodsDescription: string } | null;
       invoice: { invoiceNumber: string } | null;
     }>) {
       raw.push({
@@ -169,6 +172,7 @@ async function getHandler(request: NextRequest) {
         companyName: pay.company.name,
         shipmentId: pay.shipment?.id ?? null,
         shipmentRef: pay.shipment?.referenceNumber ?? null,
+        goodsDescription: pay.shipment?.goodsDescription ?? null,
         debit: 0,
         credit: toNum(pay.amount),
       });
@@ -191,6 +195,7 @@ async function getHandler(request: NextRequest) {
         companyName: cn.company.name,
         shipmentId: null,
         shipmentRef: null,
+        goodsDescription: null,
         debit: 0,
         credit: toNum(cn.amount),
       });
@@ -211,6 +216,7 @@ async function getHandler(request: NextRequest) {
         companyName: r.companyName,
         shipmentId: r.shipmentId,
         shipmentRef: r.shipmentRef,
+        goodsDescription: r.goodsDescription,
         debit: r.debit,
         credit: r.credit,
         runningBalance,
