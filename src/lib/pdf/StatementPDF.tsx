@@ -6,10 +6,13 @@ import {
   Text,
   StyleSheet,
 } from "@react-pdf/renderer";
+import { breakLongWords, truncateGoods } from "@/lib/goods";
 
 const styles = StyleSheet.create({
   page: {
     padding: 40,
+    // Keeps the table and boxes clear of the footer, which is pinned near the bottom of every page.
+    paddingBottom: 80,
     fontSize: 10,
     fontFamily: "Helvetica",
   },
@@ -93,6 +96,7 @@ const styles = StyleSheet.create({
   },
   colDate: { width: "12%" },
   colDesc: { width: "26%" },
+  goods: { fontSize: 7, color: "#6b7280", marginTop: 1 },
   colRef: { width: "16%" },
   colDebit: { width: "15%", textAlign: "right" },
   colCredit: { width: "15%", textAlign: "right" },
@@ -150,6 +154,8 @@ export interface StatementPDFData {
   entries: Array<{
     date: string;
     description: string;
+    /** The shipment's Goods text, shown under the description. */
+    goods?: string | null;
     reference: string;
     debit: number;
     credit: number;
@@ -189,6 +195,20 @@ export function StatementPDF({ statement }: { statement: StatementPDFData }) {
   const contactLine = contact
     ? [contact.name, contact.email, contact.phone].filter(Boolean).join(" · ")
     : null;
+
+  const renderRow = (row: StatementPDFData["entries"][number], i: number) => (
+    <View key={i} wrap={false} style={[styles.tableRow, ...(i % 2 === 1 ? [styles.tableRowAlt] : [])]}>
+      <Text style={styles.colDate}>{row.date}</Text>
+      <View style={styles.colDesc}>
+        <Text>{row.description}</Text>
+        {row.goods ? <Text style={styles.goods}>{breakLongWords(truncateGoods(row.goods), 30)}</Text> : null}
+      </View>
+      <Text style={styles.colRef}>{row.reference}</Text>
+      <Text style={styles.colDebit}>{row.debit ? formatMoney(row.debit) : ""}</Text>
+      <Text style={styles.colCredit}>{row.credit ? formatMoney(row.credit) : ""}</Text>
+      <Text style={styles.colBalance}>{formatMoney(row.balance)}</Text>
+    </View>
+  );
 
   return (
     <Document>
@@ -230,33 +250,21 @@ export function StatementPDF({ statement }: { statement: StatementPDFData }) {
             <Text style={[styles.colCredit, styles.tableHeaderText]}>Credit</Text>
             <Text style={[styles.colBalance, styles.tableHeaderText]}>Balance</Text>
           </View>
-          {statement.entries.map((row, i) => (
-            <View
-              key={i}
-              style={[
-                styles.tableRow,
-                ...(i % 2 === 1 ? [styles.tableRowAlt] : []),
-              ]}
-            >
-              <Text style={styles.colDate}>{row.date}</Text>
-              <Text style={styles.colDesc}>{row.description}</Text>
-              <Text style={styles.colRef}>{row.reference}</Text>
-              <Text style={styles.colDebit}>{row.debit ? formatMoney(row.debit) : ""}</Text>
-              <Text style={styles.colCredit}>{row.credit ? formatMoney(row.credit) : ""}</Text>
-              <Text style={styles.colBalance}>{formatMoney(row.balance)}</Text>
+          {statement.entries.slice(0, -1).map((row, i) => renderRow(row, i))}
+          {/* The last row, the totals and the closing balance stay together, so the closing box never sits alone on a page. */}
+          <View wrap={false}>
+            {statement.entries.length > 0 ? renderRow(statement.entries[statement.entries.length - 1], statement.entries.length - 1) : null}
+            <View style={styles.totalsRow}>
+              <Text style={styles.colTotalLabel}>Total / Net balance</Text>
+              <Text style={styles.colDebit}>{formatMoney(statement.totalDebits)}</Text>
+              <Text style={styles.colCredit}>{formatMoney(statement.totalCredits)}</Text>
+              <Text style={styles.colBalance}>{formatMoney(statement.closingBalance)}</Text>
             </View>
-          ))}
-          <View style={styles.totalsRow} wrap={false}>
-            <Text style={styles.colTotalLabel}>Total / Net balance</Text>
-            <Text style={styles.colDebit}>{formatMoney(statement.totalDebits)}</Text>
-            <Text style={styles.colCredit}>{formatMoney(statement.totalCredits)}</Text>
-            <Text style={styles.colBalance}>{formatMoney(statement.closingBalance)}</Text>
+            <View style={styles.closingBalance}>
+              <Text>Closing balance</Text>
+              <Text>{formatMoney(statement.closingBalance)}</Text>
+            </View>
           </View>
-        </View>
-
-        <View style={styles.closingBalance}>
-          <Text>Closing balance</Text>
-          <Text>{formatMoney(statement.closingBalance)}</Text>
         </View>
 
         <View style={styles.footer} fixed>

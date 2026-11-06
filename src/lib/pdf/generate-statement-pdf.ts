@@ -59,6 +59,7 @@ export async function generateStatementPdfBuffer(
         totalAmount: true,
         paidAmount: true,
         balanceAmount: true,
+        shipment: { select: { goodsDescription: true } },
       },
     }),
     prisma.payment.findMany({
@@ -69,6 +70,7 @@ export async function generateStatementPdfBuffer(
         paymentDate: true,
         amount: true,
         referenceNumber: true,
+        shipment: { select: { goodsDescription: true } },
       },
     }),
   ]);
@@ -94,6 +96,7 @@ export async function generateStatementPdfBuffer(
       entries.push({
         date: dateStr,
         description: `Invoice ${inv.invoiceNumber}`,
+        goods: inv.shipment?.goodsDescription?.trim() || null,
         reference: inv.invoiceNumber,
         debit: amount,
         credit: 0,
@@ -106,6 +109,7 @@ export async function generateStatementPdfBuffer(
       entries.push({
         date: dateStr,
         description: pay.referenceNumber ? `Payment - ${pay.referenceNumber}` : "Payment",
+        goods: pay.shipment?.goodsDescription?.trim() || null,
         reference: pay.referenceNumber ?? pay.id,
         debit: 0,
         credit: amount,

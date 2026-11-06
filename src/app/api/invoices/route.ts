@@ -44,6 +44,7 @@ async function getHandler(request: NextRequest) {
         { invoiceNumber: { contains: escapeRegex(search), mode: "insensitive" } },
         { company: { name: { contains: escapeRegex(search), mode: "insensitive" } } },
         { shipment: { referenceNumber: { contains: escapeRegex(search), mode: "insensitive" } } },
+        { shipment: { goodsDescription: { contains: escapeRegex(search), mode: "insensitive" } } },
       ];
     }
     if (status) where.status = status as Prisma.EnumInvoiceStatusFilter;
@@ -74,7 +75,7 @@ async function getHandler(request: NextRequest) {
         orderBy: { [sortBy]: sortOrder },
         include: {
           company: { select: { id: true, name: true } },
-          shipment: { select: { id: true, referenceNumber: true } },
+          shipment: { select: { id: true, referenceNumber: true, goodsDescription: true } },
         },
       }),
       prisma.invoice.count({ where }),
@@ -97,6 +98,7 @@ async function getHandler(request: NextRequest) {
         isOverdue,
         companyName: inv.company.name,
         shipmentReference: inv.shipment.referenceNumber,
+        shipmentGoods: inv.shipment.goodsDescription,
       };
     });
 

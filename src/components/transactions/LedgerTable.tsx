@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/Table";
 import { formatCurrency } from "@/lib/invoice-constants";
+import { truncateGoods } from "@/lib/goods";
 
 export interface LedgerRow {
   id: string;
@@ -108,7 +109,12 @@ export function LedgerTable({
               <TableCell>
                 {row.description}
                 {showGoods && row.goodsDescription ? (
-                  <span className="block text-xs text-muted-foreground">{row.goodsDescription}</span>
+                  <span
+                    className="block max-w-[28rem] text-xs text-muted-foreground [overflow-wrap:anywhere]"
+                    title={row.goodsDescription}
+                  >
+                    {truncateGoods(row.goodsDescription)}
+                  </span>
                 ) : null}
               </TableCell>
               <TableCell>{row.companyName}</TableCell>

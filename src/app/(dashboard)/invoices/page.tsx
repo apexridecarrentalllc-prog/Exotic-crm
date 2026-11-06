@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/Dropdown";
 import { Plus, MoreHorizontal, Eye, FileDown, Send, CreditCard, X, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { truncateGoods } from "@/lib/goods";
 
 type InvoiceRow = {
   id: string;
@@ -27,6 +28,7 @@ type InvoiceRow = {
   status: string;
   companyName: string;
   shipmentReference: string;
+  shipmentGoods?: string | null;
   issueDate: string;
   dueDate: string;
   totalAmount?: number;
@@ -164,7 +166,23 @@ export default function InvoicesPage() {
       ),
     },
     { id: "companyName", header: "Company", cell: (row) => row.companyName },
-    { id: "shipmentReference", header: "Shipment", cell: (row) => row.shipmentReference },
+    {
+      id: "shipmentReference",
+      header: "Shipment",
+      cell: (row) => (
+        <div>
+          <div>{row.shipmentReference}</div>
+          {row.shipmentGoods ? (
+            <div
+              className="mt-0.5 max-w-[16rem] text-xs text-muted-foreground [overflow-wrap:anywhere]"
+              title={row.shipmentGoods}
+            >
+              {truncateGoods(row.shipmentGoods)}
+            </div>
+          ) : null}
+        </div>
+      ),
+    },
     {
       id: "issueDate",
       header: "Issue Date",
@@ -328,7 +346,7 @@ export default function InvoicesPage() {
 
       <div className="flex flex-wrap items-center gap-3 rounded-lg border bg-card p-3">
         <Input
-          placeholder="Search (invoice #, company)..."
+          placeholder="Invoice #, company, goods..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="h-9 w-[200px]"

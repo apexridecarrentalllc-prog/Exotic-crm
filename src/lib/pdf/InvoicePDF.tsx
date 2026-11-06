@@ -12,6 +12,7 @@ import {
   Circle,
 } from "@react-pdf/renderer";
 import { amountInWords } from "@/lib/number-to-words";
+import { INVOICE_GOODS_MAX, breakLongWords, truncateGoods } from "@/lib/goods";
 
 // The original invoice colour scheme.
 const GREEN = "#3F730A"; // headings, main text, table header, total bar
@@ -576,7 +577,7 @@ export function InvoicePDF({ invoice }: { invoice: InvoicePDFData }) {
 
   // Cargo information is the shipment's Goods text (container, weight etc. are typed there). Empty shows a dash.
   const ship = invoice.shipment;
-  const cargoGoods = ship?.goodsDescription?.trim() || "—";
+  const cargoGoods = breakLongWords(truncateGoods(ship?.goodsDescription, INVOICE_GOODS_MAX), 70) || "—";
 
   const bank = invoice.bankDetails;
   const currencyPrefix = bank?.currency ? `${bank.currency} ` : "";

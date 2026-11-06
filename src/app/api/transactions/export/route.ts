@@ -47,7 +47,7 @@ async function getHandler(request: NextRequest) {
         orderBy: { issueDate: "asc" },
         include: {
           company: { select: { id: true, name: true } },
-          shipment: { select: { id: true, referenceNumber: true } },
+          shipment: { select: { id: true, referenceNumber: true, goodsDescription: true } },
         },
       }),
       prisma.payment.findMany({
@@ -55,13 +55,13 @@ async function getHandler(request: NextRequest) {
         orderBy: { paymentDate: "asc" },
         include: {
           company: { select: { id: true, name: true } },
-          shipment: { select: { id: true, referenceNumber: true } },
+          shipment: { select: { id: true, referenceNumber: true, goodsDescription: true } },
           invoice: { select: { invoiceNumber: true } },
         },
       }),
     ]);
 
-    type R = { date: Date; type: string; ref: string; desc: string; companyName: string; shipmentRef: string | null; debit: number; credit: number };
+    type R = { date: Date; type: string; ref: string; desc: string; goods: string | null; companyName: string; shipmentRef: string | null; debit: number; credit: number };
     const raw: R[] = [];
     for (const inv of invoices) {
       raw.push({
@@ -69,6 +69,7 @@ async function getHandler(request: NextRequest) {
         type: "INVOICE",
         ref: inv.invoiceNumber,
         desc: `Invoice ${inv.invoiceNumber}`,
+        goods: inv.shipment?.goodsDescription?.trim() || null,
         companyName: inv.company.name,
         shipmentRef: inv.shipment?.referenceNumber ?? null,
         debit: toNum(inv.totalAmount),
@@ -83,6 +84,7 @@ async function getHandler(request: NextRequest) {
         desc: pay.isAdvance
           ? `Advance payment${pay.notes ? ` - ${pay.notes}` : ""}`
           : `Payment${pay.invoice ? ` - ${pay.invoice.invoiceNumber}` : ""}`,
+        goods: pay.shipment?.goodsDescription?.trim() || null,
         companyName: pay.company.name,
         shipmentRef: pay.shipment?.referenceNumber ?? null,
         debit: 0,
@@ -98,7 +100,8 @@ async function getHandler(request: NextRequest) {
         Date: r.date.toISOString().slice(0, 10),
         Type: r.type,
         Reference: r.ref,
-        Description: r.desc,
+        // Goods go on a second line of the same cell, like the ledger screen.
+        Description: r.goods ? `${r.desc}\n${r.goods}` : r.desc,
         Company: r.companyName,
         Shipment: r.shipmentRef ?? "",
         Debit: r.debit,
