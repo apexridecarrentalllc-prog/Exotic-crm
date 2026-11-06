@@ -5,6 +5,7 @@ import { createAuditLog } from "@/lib/auth-helpers";
 import { createNotificationForRoles } from "@/lib/notifications";
 import { recordPaymentSchema } from "@/lib/validations";
 import { toNum } from "@/lib/utils";
+import { roundMoney } from "@/lib/money";
 import { DEFAULT_CURRENCY } from "@/lib/constants";
 
 async function getHandler(
@@ -91,18 +92,19 @@ async function postHandler(
       );
     }
 
-    const balanceAmount = toNum(invoice.balanceAmount);
-    if (parsed.data.amount > balanceAmount) {
+    const balanceAmount = roundMoney(toNum(invoice.balanceAmount));
+    const paymentAmount = roundMoney(parsed.data.amount);
+    if (paymentAmount > balanceAmount) {
       return NextResponse.json(
         { error: "Bad Request", message: "Amount cannot exceed remaining balance " + balanceAmount },
         { status: 400 }
       );
     }
 
-    const paidAmount = toNum(invoice.paidAmount);
-    const newPaidAmount = paidAmount + parsed.data.amount;
-    const totalAmount = toNum(invoice.totalAmount);
-    const newBalanceAmount = totalAmount - newPaidAmount;
+    const paidAmount = roundMoney(toNum(invoice.paidAmount));
+    const newPaidAmount = roundMoney(paidAmount + paymentAmount);
+    const totalAmount = roundMoney(toNum(invoice.totalAmount));
+    const newBalanceAmount = roundMoney(totalAmount - newPaidAmount);
     const newStatus = newBalanceAmount <= 0 ? "PAID" : "PARTIALLY_PAID";
 
     const payment = await prisma.payment.create({
@@ -111,7 +113,7 @@ async function postHandler(
         companyId: invoice.companyId,
         shipmentId: invoice.shipmentId,
         recordedById: userId,
-        amount: parsed.data.amount,
+        amount: paymentAmount,
         currency: DEFAULT_CURRENCY,
         paymentDate: parsed.data.paymentDate,
         method: parsed.data.method,

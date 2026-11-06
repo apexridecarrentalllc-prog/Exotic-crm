@@ -9,6 +9,7 @@ import { generateInvoiceNumber } from "@/lib/invoice-number";
 import { createNotificationForRole } from "@/lib/notifications";
 import { parseISO, isValid, startOfDay } from "date-fns";
 import { escapeRegex } from "@/lib/search";
+import { roundMoney } from "@/lib/money";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
@@ -44,6 +45,7 @@ async function getHandler(request: NextRequest) {
         { invoiceNumber: { contains: escapeRegex(search), mode: "insensitive" } },
         { company: { name: { contains: escapeRegex(search), mode: "insensitive" } } },
         { shipment: { referenceNumber: { contains: escapeRegex(search), mode: "insensitive" } } },
+        { shipment: { goodsDescription: { contains: escapeRegex(search), mode: "insensitive" } } },
       ];
     }
     if (status) where.status = status as Prisma.EnumInvoiceStatusFilter;
@@ -74,7 +76,7 @@ async function getHandler(request: NextRequest) {
         orderBy: { [sortBy]: sortOrder },
         include: {
           company: { select: { id: true, name: true } },
-          shipment: { select: { id: true, referenceNumber: true } },
+          shipment: { select: { id: true, referenceNumber: true, goodsDescription: true } },
         },
       }),
       prisma.invoice.count({ where }),
@@ -97,6 +99,7 @@ async function getHandler(request: NextRequest) {
         isOverdue,
         companyName: inv.company.name,
         shipmentReference: inv.shipment.referenceNumber,
+        shipmentGoods: inv.shipment.goodsDescription,
       };
     });
 
@@ -137,8 +140,8 @@ async function postHandler(request: NextRequest) {
 
     let subtotal = 0;
     const lineItemData = lineItems.map((line, i) => {
-      const amount = line.quantity * line.unitRate;
-      subtotal += amount;
+      const amount = roundMoney(line.quantity * line.unitRate);
+      subtotal = roundMoney(subtotal + amount);
       return {
         description: line.description,
         quantity: line.quantity,

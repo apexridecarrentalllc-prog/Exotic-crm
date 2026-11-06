@@ -351,7 +351,8 @@ export async function exportTransactionsToExcel(
   wsLedger.addRow(["Date", "Type", "Reference", "Description", "Company", "Shipment", "Debit", "Credit", "Balance"]);
   applyHeaderStyle(wsLedger, wsLedger.getRow(1));
   for (const t of ledger) {
-    wsLedger.addRow([t.Date, t.Type, t.Reference, t.Description ?? "", t.Company ?? "", t.Shipment ?? "", t.Debit, t.Credit, t.Balance]);
+    const row = wsLedger.addRow([t.Date, t.Type, t.Reference, t.Description ?? "", t.Company ?? "", t.Shipment ?? "", t.Debit, t.Credit, t.Balance]);
+    if (t.Description?.includes("\n")) row.getCell(4).alignment = { wrapText: true };
   }
   if (ledger.length > 0) {
     // Same totals as the ledger screen: sum of Debit, sum of Credit, and the net balance (debits minus credits).
