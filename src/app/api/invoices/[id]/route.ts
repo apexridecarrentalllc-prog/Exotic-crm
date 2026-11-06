@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/auth-helpers";
 import { updateInvoiceSchema } from "@/lib/validations";
 import { toNum } from "@/lib/utils";
+import { roundMoney } from "@/lib/money";
 import { startOfDay } from "date-fns";
 
 async function getHandler(
@@ -129,7 +130,7 @@ async function patchHandler(
     }
 
     const data = parsed.data;
-    const paid = toNum(existing.paidAmount);
+    const paid = roundMoney(toNum(existing.paidAmount));
 
     // Company / shipment: only while no money or credit has been booked against the invoice.
     const newCompanyId = data.companyId ?? existing.companyId;
@@ -159,7 +160,7 @@ async function patchHandler(
     }
 
     // Totals: recomputed only when line items are sent; never below what is already paid.
-    let subtotal = toNum(existing.subtotal);
+    let subtotal = roundMoney(toNum(existing.subtotal));
     let lineItemData: {
       description: string;
       quantity: number;
@@ -171,8 +172,8 @@ async function patchHandler(
     if (data.lineItems && data.lineItems.length > 0) {
       subtotal = 0;
       lineItemData = data.lineItems.map((line, i) => {
-        const amount = line.quantity * line.unitRate;
-        subtotal += amount;
+        const amount = roundMoney(line.quantity * line.unitRate);
+        subtotal = roundMoney(subtotal + amount);
         return {
           description: line.description,
           quantity: line.quantity,
@@ -190,7 +191,7 @@ async function patchHandler(
         { status: 400 }
       );
     }
-    const balanceAmount = totalAmount - paid;
+    const balanceAmount = roundMoney(totalAmount - paid);
     const dueDate = data.dueDate ?? existing.dueDate;
 
     // Keep the status consistent with the new balance and due date.

@@ -5,6 +5,7 @@ import { createAuditLog } from "@/lib/auth-helpers";
 import { createCreditNoteSchema } from "@/lib/validations";
 import { generateCreditNoteNumber } from "@/lib/invoice-number";
 import { toNum } from "@/lib/utils";
+import { roundMoney } from "@/lib/money";
 
 async function postHandler(
   request: NextRequest,
@@ -45,8 +46,8 @@ async function postHandler(
       );
     }
 
-    const balanceAmount = toNum(invoice.balanceAmount);
-    if (parsed.data.amount > balanceAmount) {
+    const balanceAmount = roundMoney(toNum(invoice.balanceAmount));
+    if (roundMoney(parsed.data.amount) > balanceAmount) {
       return NextResponse.json(
         { error: "Bad Request", message: "Credit note amount cannot exceed invoice balance" },
         { status: 400 }
